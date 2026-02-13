@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Measles Tracker (Dark Mode)</title>
+    <title>Measles Tracker (Live & Verified)</title>
     <style>
         /* FORCE DARK MODE */
         html, body { 
-            background-color: #000000 !important; /* Pure Black */
+            background-color: #050505 !important; 
             margin: 0; 
             padding: 0; 
             height: 100vh; 
@@ -15,44 +15,44 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
         }
 
-        /* INFO BOX - Moved to Bottom Right */
+        /* INFO BOX */
         #status {
             position: absolute; 
             bottom: 30px; 
             right: 30px;
-            background: rgba(20, 20, 20, 0.9); /* Dark semi-transparent */
-            border: 1px solid #444;
+            background: rgba(20, 20, 20, 0.9); 
+            border: 1px solid #333;
             color: #eee;
             padding: 20px; 
             border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
             backdrop-filter: blur(5px);
             z-index: 100;
-            min-width: 200px;
+            min-width: 240px;
         }
 
-        h2 { margin: 0 0 10px 0; font-size: 18px; color: #ff4444; letter-spacing: 1px; }
-        .stat-line { font-size: 14px; color: #aaa; margin-bottom: 5px; }
-        .highlight { color: #fff; font-weight: bold; }
+        h2 { margin: 0 0 10px 0; font-size: 18px; color: #ff4444; letter-spacing: 1px; text-transform: uppercase; }
+        .stat-line { font-size: 14px; color: #aaa; margin-bottom: 6px; }
+        .highlight { color: #fff; font-weight: bold; font-size: 16px;}
 
         /* SVG MAP */
         svg { display: block; width: 100%; height: 100%; }
 
-        /* PATH STYLES */
         .state { 
-            stroke: #333; 
+            stroke: #222; 
             stroke-width: 1; 
             cursor: pointer; 
-            transition: all 0.2s ease;
+            transition: fill 0.2s ease;
         }
         .state:hover { 
             stroke: #fff; 
             stroke-width: 2; 
-            filter: brightness(1.2);
+            filter: brightness(1.3);
+            z-index: 10;
         }
 
         .county { 
-            stroke: rgba(0,0,0,0.5); 
+            stroke: rgba(0,0,0,0.3); 
             stroke-width: 0.5; 
             pointer-events: all; 
         }
@@ -60,20 +60,22 @@
         /* TOOLTIP */
         .tooltip {
             position: absolute; 
-            background: rgba(0, 0, 0, 0.95); 
+            background: rgba(10, 10, 10, 0.95); 
             color: #fff; 
-            padding: 10px 15px; 
-            border: 1px solid #555;
-            border-radius: 4px; 
+            padding: 12px 16px; 
+            border: 1px solid #444;
+            border-radius: 6px; 
             pointer-events: none; 
             opacity: 0; 
-            font-size: 14px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            font-size: 13px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
             transform: translate(-50%, -100%); 
             margin-top: -15px;
             white-space: nowrap; 
             z-index: 1000;
+            line-height: 1.5;
         }
+        .sub-text { font-size: 11px; color: #888; }
     </style>
     
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -82,12 +84,12 @@
 <body>
 
 <div id="status">
-    <h2>MEASLES TRACKER</h2>
-    <div class="stat-line" id="loading-msg">⏳ Fetching live data...</div>
+    <h2>Measles Tracker</h2>
+    <div class="stat-line" id="loading-msg">⏳ Analyzing JHU Detailed Data...</div>
     <div class="stat-line" id="data-stats"></div>
-    <div style="margin-top:10px; font-size:11px; color:#555;">
-        Source: JHU CSSE Data<br>
-        Click a state to zoom.
+    <div style="margin-top:15px; font-size:11px; color:#555; border-top:1px solid #333; padding-top:10px;">
+        Filter: Lab-Confirmed Cases Only<br>
+        Source: JHU CSSE
     </div>
 </div>
 
@@ -95,7 +97,8 @@
 
 <script>
 // --- CONFIGURATION ---
-const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates.csv";
+// We switch to the DETAILED file to access the 'outcome_type' column
+const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates_detailed.csv";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 
 (async function() {
@@ -104,104 +107,125 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
     const svg = d3.select('body').append('svg').attr('viewBox', [0, 0, width, height]);
     const tooltip = d3.select(".tooltip");
     
-    // Projection
     const projection = d3.geoAlbersUsa().fitWidth(width, {type: "Sphere"});
     const path = d3.geoPath().projection(projection);
     const zoom = d3.zoom().scaleExtent([1, 8]).on("zoom", e => g.attr("transform", e.transform));
     const g = svg.append("g");
 
     try {
-        // 1. Load Data
         const [us, rawData] = await Promise.all([
             d3.json(ATLAS_URL),
             d3.csv(JHU_URL)
         ]);
 
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Live System Active</span>";
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● System Active</span>";
 
-        // 2. Process Data (County Level)
-        const countyData = new Map();
+        // 1. DATA STRUCTURES
+        const countyData = new Map(); // FIPS -> Cases
+        const stateData = new Map();  // State FIPS -> { total: 0, unassigned: 0 }
+        const nameToFips = new Map(); // "South Carolina" -> "45"
+
+        // 2. Build State Lookup Table (Name -> ID) from Topology
+        const states = topojson.feature(us, us.objects.states).features;
+        const counties = topojson.feature(us, us.objects.counties).features;
         
+        states.forEach(s => {
+            nameToFips.set(s.properties.name, s.id);
+            stateData.set(s.id, { total: 0, unassigned: 0 });
+        });
+
+        // 3. INTELLIGENT DATA PARSING
+        let globalTotal = 0;
+
         rawData.forEach(d => {
-            const val = +d.value || +d.cases || 0;
-            // FORCE 5-digit string for County FIPS (e.g. 8001 -> "08001")
+            // FILTER: STRICTLY 'case_lab-confirmed' to avoid double counting
+            // The file lists the same patient as 'case_local', 'case_unvaccinated', etc.
+            if (d.outcome_type !== 'case_lab-confirmed') return;
+
+            const val = +d.value || 0;
+            if (val === 0) return;
+
             let fips = (d.location_id || d.fips || "").toString();
-            if (fips.length > 0 && fips.length < 5) fips = fips.padStart(5, "0");
-            
-            if (countyData.has(fips)) {
-                countyData.set(fips, countyData.get(fips) + val);
-            } else {
-                countyData.set(fips, val);
+            const rawName = d.location_name || ""; 
+
+            let assignedStateFips = null;
+            let isCountyMapable = false;
+
+            // STRATEGY A: Use FIPS code if valid
+            if (fips && fips !== "0" && fips.length >= 4) {
+                fips = fips.padStart(5, "0"); 
+                assignedStateFips = fips.substring(0, 2); 
+                
+                // Add to County Map
+                countyData.set(fips, (countyData.get(fips) || 0) + val);
+                isCountyMapable = true;
+            } 
+            // STRATEGY B: Parse Name if FIPS is 0 or missing (e.g. "Upstate, South Carolina")
+            else {
+                const parts = rawName.split(",");
+                const stateName = parts[parts.length - 1].trim(); 
+                assignedStateFips = nameToFips.get(stateName);
+            }
+
+            // Add to State Aggregates
+            if (assignedStateFips && stateData.has(assignedStateFips)) {
+                const stats = stateData.get(assignedStateFips);
+                stats.total += val;
+                if (!isCountyMapable) stats.unassigned += val;
+                globalTotal += val;
             }
         });
 
-        // 3. Aggregate Data (State Level)
-        const states = topojson.feature(us, us.objects.states).features;
-        const counties = topojson.feature(us, us.objects.counties).features;
+        document.getElementById("data-stats").innerHTML = `Lab-Confirmed Cases: <span class="highlight">${globalTotal.toLocaleString()}</span>`;
 
-        let totalCases = 0;
-
-        states.forEach(state => {
-            // FORCE 2-digit string for State FIPS (e.g. 6 -> "06")
-            const stateFips = state.id.toString().padStart(2, "0");
-            
-            // Find counties that start with this State FIPS
-            const stateCounties = counties.filter(c => {
-                const cFips = c.id.toString().padStart(5, "0");
-                return cFips.startsWith(stateFips);
-            });
-            
-            // Sum cases
-            const stateTotal = d3.sum(stateCounties, c => {
-                const cFips = c.id.toString().padStart(5, "0");
-                return countyData.get(cFips) || 0;
-            });
-
-            state.properties.cases = stateTotal;
-            totalCases += stateTotal;
-        });
-
-        document.getElementById("data-stats").innerHTML = `Total Reported: <span class="highlight">${totalCases.toLocaleString()}</span>`;
-
-        // 4. Color Scale (Dark Mode Neon)
+        // 4. Color Scale
         const color = d3.scaleThreshold()
-            .domain([1, 5, 20, 50, 100])
-            .range(["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
-            // #1a1a1a = Dark Gray (0 cases)
+            .domain([1, 10, 25, 50, 100])
+            .range(["#151515", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
 
-        // 5. Draw Map
-        
-        // Draw States (Choropleth)
-        const stateLayer = g.selectAll(".state")
+        // 5. DRAW MAP
+
+        // Draw States
+        g.selectAll(".state")
             .data(states)
             .join("path")
             .attr("class", "state")
             .attr("d", path)
             .attr("fill", d => {
-                return d.properties.cases > 0 ? color(d.properties.cases) : "#1a1a1a";
+                const stats = stateData.get(d.id);
+                return (stats && stats.total > 0) ? color(stats.total) : "#151515";
             })
             .on("click", clicked)
-            .on("mouseover", (event, d) => showTooltip(event, d.properties.name, d.properties.cases, "State Total"))
+            .on("mouseover", (event, d) => {
+                const stats = stateData.get(d.id);
+                const total = stats ? stats.total : 0;
+                const unassigned = stats ? stats.unassigned : 0;
+                const mapped = total - unassigned;
+                
+                showTooltip(event, d.properties.name, 
+                    `<strong>Total Cases: ${total}</strong><br>
+                     <span class="sub-text">Mapped: ${mapped} | Unassigned: ${unassigned}</span>`
+                );
+            })
             .on("mouseout", hideTooltip);
 
-        // Draw State Boundaries (Thin Light Lines)
+        // Draw Boundaries
         g.append("path")
             .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
             .attr("fill", "none")
-            .attr("stroke", "#444")
+            .attr("stroke", "#333")
             .attr("stroke-width", 0.8)
             .attr("d", path)
             .style("pointer-events", "none");
 
         svg.call(zoom);
 
-        // --- INTERACTION LOGIC ---
+        // --- INTERACTION ---
 
         function clicked(event, d) {
             const [[x0, y0], [x1, y1]] = path.bounds(d);
             event.stopPropagation();
             
-            // Calculate Zoom
             const w = x1 - x0, h = y1 - y0;
             const k = Math.min(8, 0.9 / Math.max(w / width, h / height));
             const tx = width / 2 - (x0 + x1) / 2 * k;
@@ -218,8 +242,8 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
         function renderCounties(stateFeature) {
             g.selectAll(".county").remove();
             
-            const stateFips = stateFeature.id.toString().padStart(2, "0");
-            const stateCounties = counties.filter(c => c.id.toString().padStart(5, "0").startsWith(stateFips));
+            const stateFips = stateFeature.id;
+            const stateCounties = counties.filter(c => c.id.startsWith(stateFips));
 
             g.append("g") 
                 .selectAll("path")
@@ -228,13 +252,12 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 .attr("class", "county")
                 .attr("d", path)
                 .attr("fill", d => {
-                    const cFips = d.id.toString().padStart(5, "0");
-                    const val = countyData.get(cFips) || 0;
-                    return val > 0 ? color(val) : "#1a1a1a";
+                    const val = countyData.get(d.id) || 0;
+                    return val > 0 ? color(val) : "#151515";
                 })
                 .on("mouseover", (event, d) => {
-                    const cFips = d.id.toString().padStart(5, "0");
-                    showTooltip(event, d.properties.name, countyData.get(cFips), "County Cases");
+                    const val = countyData.get(d.id) || 0;
+                    showTooltip(event, d.properties.name, `Lab Confirmed: <strong>${val}</strong>`);
                 })
                 .on("mouseout", hideTooltip)
                 .style("opacity", 0)
@@ -242,10 +265,9 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 .style("opacity", 1);
         }
 
-        function showTooltip(event, name, val, label) {
-            val = val || 0;
+        function showTooltip(event, title, htmlContent) {
             tooltip.style("opacity", 1)
-                .html(`<strong>${name}</strong><br><span style='color:#aaa'>${label}</span>: <span style='color:#ff5555; font-weight:bold'>${val}</span>`)
+                .html(`<div style="font-size:14px; margin-bottom:4px; color:#ddd">${title}</div>${htmlContent}`)
                 .style("left", event.pageX + "px")
                 .style("top", event.pageY + "px");
         }
