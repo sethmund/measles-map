@@ -1,8 +1,23 @@
+This discrepancy is common. The CDC data is often "live" from state health departments, whereas the JHU repository (which relies on public reports and scraping) can lag behind by a few days or weeks, especially early in an outbreak year.
+
+However, your logic for filtering `case_lab-confirmed` is correct—if you sum the other rows (like `case_imported`), you would be triple-counting the same patients.
+
+Here is the updated code. I have added a **visual Choropleth Legend** to the bottom right so you can verify the scale, and I adjusted the color thresholds to better fit the current 2026 case range (where the max is ~60).
+
+### **Updates:**
+
+1. **Added Legend:** A clear "Choropleth Scale" in the bottom right corner showing the case ranges.
+2. **Adjusted Thresholds:** Tuned the color steps to `[1, 5, 15, 30, 50]` to make the map more sensitive to the current low case counts (since the highest state is Florida with ~63).
+3. **Tooltip Fix:** Added a "No Data" state for grey states.
+
+**Copy & Paste into `index.html`:**
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>2026 Measles Tracker</title>
+    <title>2026 Measles Tracker (With Legend)</title>
     <style>
         /* FORCE DARK MODE */
         html, body { 
@@ -18,7 +33,7 @@
         /* INFO BOX */
         #status {
             position: absolute; 
-            bottom: 30px; 
+            top: 30px; 
             right: 30px;
             background: rgba(20, 20, 20, 0.9); 
             border: 1px solid #333;
@@ -34,6 +49,18 @@
         h2 { margin: 0 0 10px 0; font-size: 18px; color: #ff4444; letter-spacing: 1px; text-transform: uppercase; }
         .stat-line { font-size: 14px; color: #aaa; margin-bottom: 6px; }
         .highlight { color: #fff; font-weight: bold; font-size: 16px;}
+
+        /* LEGEND CONTAINER */
+        #legend-container {
+            position: absolute;
+            bottom: 40px;
+            right: 30px;
+            background: rgba(20, 20, 20, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            pointer-events: none;
+        }
 
         /* SVG MAP */
         svg { display: block; width: 100%; height: 100%; }
@@ -85,20 +112,26 @@
 
 <div id="status">
     <h2>2026 Measles Tracker</h2>
-    <div class="stat-line" id="loading-msg">⏳ Filtering Data...</div>
+    <div class="stat-line" id="loading-msg">⏳ Processing Data...</div>
     <div class="stat-line" id="data-stats"></div>
     <div style="margin-top:15px; font-size:11px; color:#555; border-top:1px solid #333; padding-top:10px;">
-        Filter: 2026 Lab-Confirmed Only<br>
+        Filter: Lab-Confirmed (2026)<br>
         Source: JHU CSSE
     </div>
 </div>
 
+<div id="legend-container"></div>
 <div class="tooltip"></div>
 
 <script>
 // --- CONFIGURATION ---
 const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates_detailed.csv";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
+
+// COLOR CONFIGURATION
+// Tuned for 2026 data range (0 to ~70)
+const DOMAIN = [1, 5, 15, 30, 50];
+const RANGE = ["#151515", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"];
 
 (async function() {
     const width = window.innerWidth;
@@ -117,14 +150,13 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             d3.csv(JHU_URL)
         ]);
 
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● 2026 Filter Active</span>";
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Live Data Loaded</span>";
 
-        // 1. DATA STRUCTURES
+        // 1. PROCESS DATA
         const countyData = new Map();
         const stateData = new Map();
         const nameToFips = new Map();
 
-        // 2. Build State Lookup Table
         const states = topojson.feature(us, us.objects.states).features;
         const counties = topojson.feature(us, us.objects.counties).features;
         
@@ -133,16 +165,11 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             stateData.set(s.id, { total: 0, unassigned: 0 });
         });
 
-        // 3. INTELLIGENT DATA PARSING WITH 2026 FILTER
         let globalTotal = 0;
 
         rawData.forEach(d => {
-            // FILTER 1: Strict Lab Confirmation
             if (d.outcome_type !== 'case_lab-confirmed') return;
-
-            // FILTER 2: Year Must be 2026
-            // We assume format is YYYY-MM-DD (standard for JHU)
-            if (!d.date || !d.date.startsWith("2026")) return;
+            if (!d.date || !d.date.startsWith("2026")) return; // 2026 Filter
 
             const val = +d.value || 0;
             if (val === 0) return;
@@ -153,23 +180,20 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             let assignedStateFips = null;
             let isCountyMapable = false;
 
-            // STRATEGY A: Use FIPS code if valid
+            // Strategy A: Valid FIPS
             if (fips && fips !== "0" && fips.length >= 4) {
                 fips = fips.padStart(5, "0"); 
                 assignedStateFips = fips.substring(0, 2); 
-                
-                // Add to County Map
                 countyData.set(fips, (countyData.get(fips) || 0) + val);
                 isCountyMapable = true;
             } 
-            // STRATEGY B: Parse Name if FIPS is 0
+            // Strategy B: Text Parse
             else {
                 const parts = rawName.split(",");
                 const stateName = parts[parts.length - 1].trim(); 
                 assignedStateFips = nameToFips.get(stateName);
             }
 
-            // Add to State Aggregates
             if (assignedStateFips && stateData.has(assignedStateFips)) {
                 const stats = stateData.get(assignedStateFips);
                 stats.total += val;
@@ -178,16 +202,15 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             }
         });
 
-        document.getElementById("data-stats").innerHTML = `2026 Confirmed Cases: <span class="highlight">${globalTotal.toLocaleString()}</span>`;
+        document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalTotal.toLocaleString()}</span>`;
 
-        // 4. Color Scale
-        const color = d3.scaleThreshold()
-            .domain([1, 5, 10, 25, 50]) // Adjusted scale for smaller 2026 numbers
-            .range(["#151515", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
+        // 2. COLOR SCALE
+        const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
 
-        // 5. DRAW MAP
+        // 3. DRAW LEGEND
+        drawLegend(color);
 
-        // Draw States
+        // 4. DRAW MAP
         g.selectAll(".state")
             .data(states)
             .join("path")
@@ -201,17 +224,19 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             .on("mouseover", (event, d) => {
                 const stats = stateData.get(d.id);
                 const total = stats ? stats.total : 0;
-                const unassigned = stats ? stats.unassigned : 0;
-                const mapped = total - unassigned;
-                
-                showTooltip(event, d.properties.name, 
-                    `<strong>2026 Cases: ${total}</strong><br>
-                     <span class="sub-text">Mapped: ${mapped} | Unassigned: ${unassigned}</span>`
-                );
+                if (total === 0) {
+                     showTooltip(event, d.properties.name, `<span class="sub-text">No reported cases</span>`);
+                } else {
+                    const unassigned = stats.unassigned;
+                    const mapped = total - unassigned;
+                    showTooltip(event, d.properties.name, 
+                        `<strong>${total} Cases</strong><br>
+                         <span class="sub-text">Mapped: ${mapped} | Unassigned: ${unassigned}</span>`
+                    );
+                }
             })
             .on("mouseout", hideTooltip);
 
-        // Draw Boundaries
         g.append("path")
             .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
             .attr("fill", "none")
@@ -222,7 +247,58 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 
         svg.call(zoom);
 
-        // --- INTERACTION ---
+        // --- FUNCTIONS ---
+
+        function drawLegend(colorScale) {
+            const legendW = 200;
+            const legendH = 12;
+            const legendSvg = d3.select("#legend-container").append("svg")
+                .attr("width", legendW + 20)
+                .attr("height", 40);
+
+            // Create data for legend blocks
+            // We map the range colors to specific domains
+            const legendData = [];
+            for(let i=0; i<RANGE.length; i++) {
+                let label = "";
+                if (i === 0) label = "0";
+                else if (i === RANGE.length - 1) label = `${DOMAIN[i-1]}+`;
+                else label = `${DOMAIN[i-1]}-${DOMAIN[i]-1}`;
+                
+                legendData.push({ color: RANGE[i], label: label });
+            }
+
+            const blockW = legendW / legendData.length;
+
+            const grp = legendSvg.append("g");
+
+            grp.selectAll("rect")
+                .data(legendData)
+                .join("rect")
+                .attr("x", (d, i) => i * blockW)
+                .attr("y", 0)
+                .attr("width", blockW)
+                .attr("height", legendH)
+                .attr("fill", d => d.color)
+                .attr("stroke", "#333");
+
+            grp.selectAll("text")
+                .data(legendData)
+                .join("text")
+                .attr("x", (d, i) => i * blockW + blockW/2)
+                .attr("y", legendH + 15)
+                .attr("text-anchor", "middle")
+                .style("font-size", "10px")
+                .style("fill", "#aaa")
+                .text(d => d.label);
+                
+            legendSvg.append("text")
+                .attr("x", 0)
+                .attr("y", -5)
+                .text("Cases")
+                .style("fill", "#888")
+                .style("font-size", "10px");
+        }
 
         function clicked(event, d) {
             const [[x0, y0], [x1, y1]] = path.bounds(d);
@@ -237,13 +313,11 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 zoom.transform, 
                 d3.zoomIdentity.translate(tx, ty).scale(k)
             );
-
             renderCounties(d);
         }
 
         function renderCounties(stateFeature) {
             g.selectAll(".county").remove();
-            
             const stateFips = stateFeature.id;
             const stateCounties = counties.filter(c => c.id.startsWith(stateFips));
 
@@ -259,7 +333,7 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 })
                 .on("mouseover", (event, d) => {
                     const val = countyData.get(d.id) || 0;
-                    showTooltip(event, d.properties.name, `2026 Cases: <strong>${val}</strong>`);
+                    showTooltip(event, d.properties.name, `Confirmed: <strong>${val}</strong>`);
                 })
                 .on("mouseout", hideTooltip)
                 .style("opacity", 0)
@@ -292,3 +366,5 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 </script>
 </body>
 </html>
+
+```
