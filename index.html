@@ -128,10 +128,16 @@ Here is the updated code. I have added a **visual Choropleth Legend** to the bot
 const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates_detailed.csv";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 
-// COLOR CONFIGURATION
-// Tuned for 2026 data range (0 to ~70)
-const DOMAIN = [1, 5, 15, 30, 50];
-const RANGE = ["#151515", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"];
+// UPDATED COLOR CONFIGURATION
+// Tuned to handle the massive outlier in South Carolina (600+ cases)
+const DOMAIN = [1, 10, 50, 100, 500]; 
+const RANGE = ["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"];
+// Result: 
+// 1-9:     Dark Red
+// 10-49:   Medium Red
+// 50-99:   Bright Red
+// 100-499: Neon Red
+// 500+:     White-Red
 
 (async function() {
     const width = window.innerWidth;
