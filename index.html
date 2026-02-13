@@ -2,53 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JHU Measles Map (Dark Mode)</title>
+    <title>Measles Tracker (Dark Mode)</title>
     <style>
-        /* DARK THEME CSS */
-        body { 
-            background: #111; /* Deep Black Background */
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        /* FORCE DARK MODE */
+        html, body { 
+            background-color: #000000 !important; /* Pure Black */
             margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            padding: 0; 
             height: 100vh; 
+            width: 100vw; 
             overflow: hidden;
-            color: #ddd;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
         }
-        
+
+        /* INFO BOX - Moved to Bottom Right */
         #status {
-            position: absolute; top: 20px; left: 20px;
-            background: rgba(30, 30, 30, 0.9);
-            padding: 15px 20px; border-radius: 8px;
+            position: absolute; 
+            bottom: 30px; 
+            right: 30px;
+            background: rgba(20, 20, 20, 0.9); /* Dark semi-transparent */
             border: 1px solid #444;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            font-size: 14px; color: #eee;
-            max-width: 300px; z-index: 100;
+            color: #eee;
+            padding: 20px; 
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            min-width: 200px;
         }
 
-        svg { width: 100vw; height: 100vh; display: block; }
-        
-        path { stroke: #222; stroke-width: 0.5; transition: fill 0.2s, stroke 0.2s; }
-        
-        /* State Styling */
-        .state { cursor: pointer; }
-        .state:hover { stroke: #fff; stroke-width: 1.5; }
-        
-        /* County Styling */
-        .county { stroke: #111; stroke-width: 0.1; pointer-events: all; }
-        
-        /* Tooltip (Light on Dark) */
+        h2 { margin: 0 0 10px 0; font-size: 18px; color: #ff4444; letter-spacing: 1px; }
+        .stat-line { font-size: 14px; color: #aaa; margin-bottom: 5px; }
+        .highlight { color: #fff; font-weight: bold; }
+
+        /* SVG MAP */
+        svg { display: block; width: 100%; height: 100%; }
+
+        /* PATH STYLES */
+        .state { 
+            stroke: #333; 
+            stroke-width: 1; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+        }
+        .state:hover { 
+            stroke: #fff; 
+            stroke-width: 2; 
+            filter: brightness(1.2);
+        }
+
+        .county { 
+            stroke: rgba(0,0,0,0.5); 
+            stroke-width: 0.5; 
+            pointer-events: all; 
+        }
+
+        /* TOOLTIP */
         .tooltip {
-            position: absolute; background: rgba(255, 255, 255, 0.95); color: #000; 
-            padding: 8px 12px; border-radius: 4px; pointer-events: none; 
-            opacity: 0; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            transform: translate(-50%, -100%); margin-top: -12px;
-            white-space: nowrap; z-index: 1000;
-            font-weight: bold;
+            position: absolute; 
+            background: rgba(0, 0, 0, 0.95); 
+            color: #fff; 
+            padding: 10px 15px; 
+            border: 1px solid #555;
+            border-radius: 4px; 
+            pointer-events: none; 
+            opacity: 0; 
+            font-size: 14px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transform: translate(-50%, -100%); 
+            margin-top: -15px;
+            white-space: nowrap; 
+            z-index: 1000;
         }
-
-        h3 { margin: 0 0 5px 0; color: #ff5555; }
     </style>
     
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -57,10 +82,15 @@
 <body>
 
 <div id="status">
-    <h3>US Measles Tracker</h3>
-    <div id="loading-msg">⏳ Connecting to JHU Data...</div>
-    <div id="data-stats" style="font-size: 12px; color: #888; margin-top: 5px;"></div>
+    <h2>MEASLES TRACKER</h2>
+    <div class="stat-line" id="loading-msg">⏳ Fetching live data...</div>
+    <div class="stat-line" id="data-stats"></div>
+    <div style="margin-top:10px; font-size:11px; color:#555;">
+        Source: JHU CSSE Data<br>
+        Click a state to zoom.
+    </div>
 </div>
+
 <div class="tooltip"></div>
 
 <script>
@@ -87,17 +117,17 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             d3.csv(JHU_URL)
         ]);
 
-        document.getElementById("loading-msg").textContent = "✅ Data Loaded";
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Live System Active</span>";
 
         // 2. Process Data (County Level)
         const countyData = new Map();
         
         rawData.forEach(d => {
             const val = +d.value || +d.cases || 0;
-            // Pad FIPS to 5 digits (e.g., 6037 -> 06037)
-            const fips = (d.location_id || d.fips || "").toString().padStart(5, "0");
+            // FORCE 5-digit string for County FIPS (e.g. 8001 -> "08001")
+            let fips = (d.location_id || d.fips || "").toString();
+            if (fips.length > 0 && fips.length < 5) fips = fips.padStart(5, "0");
             
-            // If multiple entries exist for a county, sum them
             if (countyData.has(fips)) {
                 countyData.set(fips, countyData.get(fips) + val);
             } else {
@@ -105,52 +135,61 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             }
         });
 
-        // Update Stats Panel
-        const totalCases = d3.sum(Array.from(countyData.values()));
-        document.getElementById("data-stats").innerText = `Total Cases: ${totalCases}`;
-
         // 3. Aggregate Data (State Level)
         const states = topojson.feature(us, us.objects.states).features;
         const counties = topojson.feature(us, us.objects.counties).features;
 
+        let totalCases = 0;
+
         states.forEach(state => {
-            // Find all counties belonging to this state (matching FIPS prefix)
-            // State FIPS is 2 digits (e.g. "06"). County FIPS starts with "06..."
-            const stateCounties = counties.filter(c => c.id.startsWith(state.id));
+            // FORCE 2-digit string for State FIPS (e.g. 6 -> "06")
+            const stateFips = state.id.toString().padStart(2, "0");
             
-            // Sum cases from those counties
-            const stateTotal = d3.sum(stateCounties, c => countyData.get(c.id) || 0);
+            // Find counties that start with this State FIPS
+            const stateCounties = counties.filter(c => {
+                const cFips = c.id.toString().padStart(5, "0");
+                return cFips.startsWith(stateFips);
+            });
+            
+            // Sum cases
+            const stateTotal = d3.sum(stateCounties, c => {
+                const cFips = c.id.toString().padStart(5, "0");
+                return countyData.get(cFips) || 0;
+            });
+
             state.properties.cases = stateTotal;
+            totalCases += stateTotal;
         });
 
-        // 4. Color Scale (Neon Red for Dark Mode)
+        document.getElementById("data-stats").innerHTML = `Total Reported: <span class="highlight">${totalCases.toLocaleString()}</span>`;
+
+        // 4. Color Scale (Dark Mode Neon)
         const color = d3.scaleThreshold()
-            .domain([1, 10, 50, 100, 500])
-            .range(["#333", "#5c0000", "#990000", "#d40000", "#ff0000", "#ff5555"]);
-            // #333 is "No Cases" (Dark Gray)
+            .domain([1, 5, 20, 50, 100])
+            .range(["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
+            // #1a1a1a = Dark Gray (0 cases)
 
         // 5. Draw Map
         
         // Draw States (Choropleth)
-        g.selectAll(".state")
+        const stateLayer = g.selectAll(".state")
             .data(states)
             .join("path")
             .attr("class", "state")
             .attr("d", path)
             .attr("fill", d => {
-                const val = d.properties.cases;
-                return val > 0 ? color(val) : "#222"; // Very dark gray if 0 cases
+                return d.properties.cases > 0 ? color(d.properties.cases) : "#1a1a1a";
             })
             .on("click", clicked)
-            .on("mouseover", (event, d) => showTooltip(event, d.properties.name, d.properties.cases))
+            .on("mouseover", (event, d) => showTooltip(event, d.properties.name, d.properties.cases, "State Total"))
             .on("mouseout", hideTooltip);
 
-        // Draw State Boundaries
+        // Draw State Boundaries (Thin Light Lines)
         g.append("path")
             .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
             .attr("fill", "none")
             .attr("stroke", "#444")
-            .attr("stroke-width", 1)
+            .attr("stroke-width", 0.8)
             .attr("d", path)
             .style("pointer-events", "none");
 
@@ -179,11 +218,9 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
         function renderCounties(stateFeature) {
             g.selectAll(".county").remove();
             
-            const stateFips = stateFeature.id;
-            const stateCounties = counties.filter(c => c.id.startsWith(stateFips));
+            const stateFips = stateFeature.id.toString().padStart(2, "0");
+            const stateCounties = counties.filter(c => c.id.toString().padStart(5, "0").startsWith(stateFips));
 
-            // Fade out the parent state to reveal counties
-            // We use 'insert' to place counties *above* the state fill but *below* borders if needed
             g.append("g") 
                 .selectAll("path")
                 .data(stateCounties)
@@ -191,20 +228,24 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 .attr("class", "county")
                 .attr("d", path)
                 .attr("fill", d => {
-                    const val = countyData.get(d.id) || 0;
-                    return val > 0 ? color(val) : "#1a1a1a"; // Slightly lighter than background
+                    const cFips = d.id.toString().padStart(5, "0");
+                    const val = countyData.get(cFips) || 0;
+                    return val > 0 ? color(val) : "#1a1a1a";
                 })
-                .on("mouseover", (event, d) => showTooltip(event, d.properties.name, countyData.get(d.id)))
+                .on("mouseover", (event, d) => {
+                    const cFips = d.id.toString().padStart(5, "0");
+                    showTooltip(event, d.properties.name, countyData.get(cFips), "County Cases");
+                })
                 .on("mouseout", hideTooltip)
                 .style("opacity", 0)
                 .transition().duration(500)
                 .style("opacity", 1);
         }
 
-        function showTooltip(event, name, val) {
+        function showTooltip(event, name, val, label) {
             val = val || 0;
             tooltip.style("opacity", 1)
-                .html(`<strong>${name}</strong><br>Cases: ${val}`)
+                .html(`<strong>${name}</strong><br><span style='color:#aaa'>${label}</span>: <span style='color:#ff5555; font-weight:bold'>${val}</span>`)
                 .style("left", event.pageX + "px")
                 .style("top", event.pageY + "px");
         }
@@ -214,10 +255,7 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
         }
 
         svg.on("click", () => {
-            // Reset Zoom
             svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-            
-            // Remove Counties & Restore State Opacity
             g.selectAll(".county").transition().style("opacity", 0).remove();
             g.selectAll(".state").transition().style("opacity", 1);
         });
