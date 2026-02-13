@@ -2,212 +2,190 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Live JHU Measles Choropleth</title>
+    <title>JHU Measles Map (Debug Mode)</title>
     <style>
-        body { background: #f4f4f9; font-family: sans-serif; margin: 0; }
-        h1 { position: absolute; top: 20px; left: 20px; margin: 0; font-size: 24px; color: #333; }
+        body { 
+            background: #f4f4f9; 
+            font-family: sans-serif; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden;
+        }
         
-        /* Map Styles */
-        path { stroke: #fff; stroke-width: 1; transition: fill 0.3s; cursor: pointer; }
-        path:hover { opacity: 0.8; stroke-width: 2; stroke: #333; }
-        
-        /* Tooltip */
-        .tooltip {
-            position: absolute; 
-            background: rgba(0,0,0,0.8); color: #fff; 
-            padding: 5px 10px; border-radius: 4px; 
-            pointer-events: none; opacity: 0; font-size: 12px;
+        #status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #555;
+            text-align: center;
         }
 
-        /* Legend */
-        .legend text { font-size: 12px; fill: #333; }
+        #error-box {
+            display: none;
+            background: #ffe6e6;
+            color: #d8000c;
+            border: 1px solid #d8000c;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 80%;
+            z-index: 999;
+        }
+
+        svg {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        path { stroke: #fff; stroke-width: 0.5; }
+        .state { fill: #ccc; cursor: pointer; }
+        .state:hover { fill: #bbb; }
+        .county { stroke: #fff; stroke-width: 0.2; }
+        
+        .tooltip {
+            position: absolute; 
+            background: rgba(0,0,0,0.8); 
+            color: #fff; 
+            padding: 8px; 
+            border-radius: 4px; 
+            pointer-events: none; 
+            opacity: 0; 
+            font-size: 14px;
+        }
     </style>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson@3"></script>
 </head>
 <body>
 
-<h1>US Measles Outbreak (Live)</h1>
+<div id="status">⏳ Loading Map Data...<br><span style="font-size:16px">(This may take a few seconds)</span></div>
+<div id="error-box"></div>
 <div class="tooltip"></div>
 
-<script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://unpkg.com/topojson@3"></script>
-
 <script>
-const width = 960,
-      height = 600,
-      padding = 20;
+// --- ERROR HANDLER ---
+function reportError(msg) {
+    const box = document.getElementById("error-box");
+    const status = document.getElementById("status");
+    status.style.display = "none";
+    box.style.display = "block";
+    box.innerHTML = `<strong>Error:</strong> ${msg}<br><br>Check the Console (F12) for details.`;
+    console.error(msg);
+}
 
-// Setup Map Container
-const svg = d3.select('body')
-    .append('svg')
-    .attr('viewBox', [0, 0, width, height])
-    .style("max-width", "100%")
-    .style("height", "auto");
+// --- MAIN SCRIPT ---
+(async function() {
+    try {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
 
-const tooltip = d3.select(".tooltip");
+        const svg = d3.select('body')
+            .append('svg')
+            .attr('viewBox', [0, 0, width, height]);
 
-const projection = d3.geoAlbersUsa()
-    .scale(1200)
-    .translate([width / 2, height / 2]);
+        const tooltip = d3.select(".tooltip");
+        const projection = d3.geoAlbersUsa().fitWidth(width, {type: "Sphere"});
+        const path = d3.geoPath().projection(projection);
 
-const path = d3.geoPath().projection(projection);
+        // URLs
+        const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_daily_cases_by_county.csv";
+        const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 
-// Color Scale (Optimized for Measles - smaller numbers than COVID)
-const color = d3.scaleThreshold()
-    .domain([1, 5, 10, 20, 50]) 
-    .range(d3.schemeReds[6]);
+        // Load Data
+        console.log("Fetching data...");
+        const [us, rawData] = await Promise.all([
+            d3.json(ATLAS_URL),
+            d3.csv(JHU_URL)
+        ]);
 
-// JHU Live Data URL
-const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_daily_cases_by_county.csv";
-const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
+        console.log("Data loaded. Processing...");
+        document.getElementById("status").textContent = "Processing Data...";
 
-// --- Main Execution ---
-Promise.all([
-    d3.json(ATLAS_URL),
-    d3.csv(JHU_URL)
-]).then(([us, rawData]) => {
-
-    // 1. Process Data: Sum cases by FIPS code
-    const casesMap = new Map();
-    
-    // Rollup: Sum the 'value' column for each 'location_id'
-    const grouped = d3.rollup(rawData, 
-        v => d3.sum(v, d => +d.value), 
-        d => d.location_id.padStart(5, "0") // Normalize FIPS to 5 chars (e.g. "06037")
-    );
-
-    // 2. Prepare GeoJSON features
-    const states = topojson.feature(us, us.objects.states).features;
-    const counties = topojson.feature(us, us.objects.counties).features;
-
-    // Attach data to properties
-    counties.forEach(feature => {
-        feature.properties.cases = grouped.get(feature.id) || 0;
-    });
-
-    // For states, we sum the counties inside them
-    states.forEach(state => {
-        // Find all counties that start with the state FIPS (first 2 chars)
-        const stateCounties = counties.filter(c => c.id.startsWith(state.id));
-        state.properties.cases = d3.sum(stateCounties, c => c.properties.cases);
-    });
-
-    // 3. Draw States (Initial View)
-    const statePaths = svg.selectAll('.state')
-        .data(states)
-        .join('path')
-        .attr('class', 'state')
-        .attr('d', path)
-        .style('fill', d => d.properties.cases > 0 ? color(d.properties.cases) : "#e0e0e0")
-        .on('click', (event, d) => stateZoom(d))
-        .on('mouseover', showTooltip)
-        .on('mouseout', hideTooltip);
-
-    // 4. Render Legend
-    renderLegend();
-
-    // --- Interaction Functions ---
-
-    function usZoom() {
-        const t = d3.transition().duration(750);
-
-        // Reset Projection
-        projection.scale(1200).translate([width / 2, height / 2]);
-
-        // Restore States
-        statePaths.transition(t)
-            .attr('d', path)
-            .style('fill', d => d.properties.cases > 0 ? color(d.properties.cases) : "#e0e0e0")
-            .style("opacity", 1)
-            .style("pointer-events", "all");
-
-        // Remove Counties
-        svg.selectAll('.county')
-            .transition(t)
-            .style('opacity', 0)
-            .remove();
-    }
-
-    function stateZoom(stateFeature) {
-        // Filter counties for this state using FIPS prefix
-        // State "06" matches County "06037"
-        const stateCounties = counties.filter(c => c.id.startsWith(stateFeature.id));
-
-        const t = d3.transition().duration(750);
-
-        // Fit projection to the clicked state
-        projection.fitExtent(
-            [[padding, padding], [width - padding, height - padding]],
-            stateFeature
+        // Process Data
+        const grouped = d3.rollup(rawData, 
+            v => d3.sum(v, d => +d.value), 
+            d => d.location_id.padStart(5, "0")
         );
 
-        // Gray out the background states (don't remove them, just dim them)
-        statePaths.transition(t)
-            .attr('d', path)
-            .style('fill', '#ddd')
-            .style('pointer-events', 'none'); // Prevent clicking other states while zoomed
+        const states = topojson.feature(us, us.objects.states).features;
+        const counties = topojson.feature(us, us.objects.counties).features;
 
-        // Render Counties on top
-        svg.selectAll('.county')
-            .data(stateCounties, d => d.id)
-            .join('path')
-            .attr('class', 'county')
-            .attr('d', path) // Uses the new zoomed projection
-            .style('opacity', 0)
-            .style('fill', d => d.properties.cases > 0 ? color(d.properties.cases) : "#fff")
-            .style('stroke', '#ccc')
-            .style('stroke-width', 0.5)
-            .on('click', (event) => { 
-                event.stopPropagation(); 
-                usZoom(); 
-            })
-            .on('mouseover', showTooltip)
-            .on('mouseout', hideTooltip)
-            .transition(t)
-            .style('opacity', 1);
+        // Color Scale
+        const color = d3.scaleThreshold()
+            .domain([1, 5, 10, 20, 50])
+            .range(["#fee5d9", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15"]);
+
+        // Draw Map
+        document.getElementById("status").style.display = "none"; // Hide loader
+
+        // Draw States
+        const stateLayer = svg.append("g").selectAll("path")
+            .data(states)
+            .join("path")
+            .attr("class", "state")
+            .attr("d", path)
+            .on("click", clicked);
+
+        // Zoom Function
+        function clicked(event, d) {
+            const [[x0, y0], [x1, y1]] = path.bounds(d);
+            const w = x1 - x0;
+            const h = y1 - y0;
+            const x = (x0 + x1) / 2;
+            const y = (y0 + y1) / 2;
+            const k = Math.min(8, 0.9 / Math.max(w / width, h / height));
+            const translate = [width / 2 - x * k, height / 2 - y * k];
+
+            svg.transition().duration(750).call(
+                zoom.transform,
+                d3.zoomIdentity.translate(translate[0], translate[1]).scale(k)
+            );
+            
+            // Render counties on zoom (optimization)
+            renderCounties(d);
+        }
+
+        const zoom = d3.zoom().on("zoom", (event) => {
+            svg.selectAll("g").attr("transform", event.transform);
+        });
+
+        function renderCounties(stateFeature) {
+            // Remove old counties
+            svg.selectAll(".county").remove();
+
+            // Find counties for this state
+            const stateCounties = counties.filter(c => c.id.startsWith(stateFeature.id));
+
+            svg.append("g")
+                .selectAll("path")
+                .data(stateCounties)
+                .join("path")
+                .attr("class", "county")
+                .attr("d", path)
+                .attr("fill", d => {
+                    const val = grouped.get(d.id) || 0;
+                    return val > 0 ? color(val) : "#fff";
+                })
+                .on("mouseover", (event, d) => {
+                    const val = grouped.get(d.id) || 0;
+                    tooltip.style("opacity", 1)
+                        .html(`<strong>${d.properties.name}</strong><br>Cases: ${val}`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", () => tooltip.style("opacity", 0));
+        }
+
+    } catch (error) {
+        reportError(error.message);
     }
-
-    // Tooltip Helpers
-    function showTooltip(event, d) {
-        const name = d.properties.name;
-        const cases = d.properties.cases || 0;
-        tooltip.style("opacity", 1)
-               .html(`<strong>${name}</strong><br>Cases: ${cases}`)
-               .style("left", (event.pageX + 10) + "px")
-               .style("top", (event.pageY - 28) + "px");
-    }
-
-    function hideTooltip() {
-        tooltip.style("opacity", 0);
-    }
-
-    // Simple Legend Renderer
-    function renderLegend() {
-        const legend = svg.append("g")
-            .attr("class", "legend")
-            .attr("transform", "translate(800, 400)");
-
-        const legendData = color.domain();
-        
-        legend.selectAll("rect")
-            .data(legendData)
-            .join("rect")
-            .attr("x", 0)
-            .attr("y", (d, i) => i * 20)
-            .attr("width", 15)
-            .attr("height", 15)
-            .style("fill", d => color(d));
-
-        legend.selectAll("text")
-            .data(legendData)
-            .join("text")
-            .attr("x", 20)
-            .attr("y", (d, i) => i * 20 + 12)
-            .text(d => d + "+ cases");
-    }
-
-}).catch(err => {
-    console.error("Error loading data:", err);
-});
+})();
 </script>
 </body>
 </html>
