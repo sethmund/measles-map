@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Measles Tracker (Live & Verified)</title>
+    <title>2026 Measles Tracker</title>
     <style>
         /* FORCE DARK MODE */
         html, body { 
@@ -84,11 +84,11 @@
 <body>
 
 <div id="status">
-    <h2>Measles Tracker</h2>
-    <div class="stat-line" id="loading-msg">⏳ Analyzing JHU Detailed Data...</div>
+    <h2>2026 Measles Tracker</h2>
+    <div class="stat-line" id="loading-msg">⏳ Filtering Data...</div>
     <div class="stat-line" id="data-stats"></div>
     <div style="margin-top:15px; font-size:11px; color:#555; border-top:1px solid #333; padding-top:10px;">
-        Filter: Lab-Confirmed Cases Only<br>
+        Filter: 2026 Lab-Confirmed Only<br>
         Source: JHU CSSE
     </div>
 </div>
@@ -97,7 +97,6 @@
 
 <script>
 // --- CONFIGURATION ---
-// We switch to the DETAILED file to access the 'outcome_type' column
 const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates_detailed.csv";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 
@@ -118,14 +117,14 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             d3.csv(JHU_URL)
         ]);
 
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● System Active</span>";
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● 2026 Filter Active</span>";
 
         // 1. DATA STRUCTURES
-        const countyData = new Map(); // FIPS -> Cases
-        const stateData = new Map();  // State FIPS -> { total: 0, unassigned: 0 }
-        const nameToFips = new Map(); // "South Carolina" -> "45"
+        const countyData = new Map();
+        const stateData = new Map();
+        const nameToFips = new Map();
 
-        // 2. Build State Lookup Table (Name -> ID) from Topology
+        // 2. Build State Lookup Table
         const states = topojson.feature(us, us.objects.states).features;
         const counties = topojson.feature(us, us.objects.counties).features;
         
@@ -134,13 +133,16 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             stateData.set(s.id, { total: 0, unassigned: 0 });
         });
 
-        // 3. INTELLIGENT DATA PARSING
+        // 3. INTELLIGENT DATA PARSING WITH 2026 FILTER
         let globalTotal = 0;
 
         rawData.forEach(d => {
-            // FILTER: STRICTLY 'case_lab-confirmed' to avoid double counting
-            // The file lists the same patient as 'case_local', 'case_unvaccinated', etc.
+            // FILTER 1: Strict Lab Confirmation
             if (d.outcome_type !== 'case_lab-confirmed') return;
+
+            // FILTER 2: Year Must be 2026
+            // We assume format is YYYY-MM-DD (standard for JHU)
+            if (!d.date || !d.date.startsWith("2026")) return;
 
             const val = +d.value || 0;
             if (val === 0) return;
@@ -160,7 +162,7 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 countyData.set(fips, (countyData.get(fips) || 0) + val);
                 isCountyMapable = true;
             } 
-            // STRATEGY B: Parse Name if FIPS is 0 or missing (e.g. "Upstate, South Carolina")
+            // STRATEGY B: Parse Name if FIPS is 0
             else {
                 const parts = rawName.split(",");
                 const stateName = parts[parts.length - 1].trim(); 
@@ -176,11 +178,11 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
             }
         });
 
-        document.getElementById("data-stats").innerHTML = `Lab-Confirmed Cases: <span class="highlight">${globalTotal.toLocaleString()}</span>`;
+        document.getElementById("data-stats").innerHTML = `2026 Confirmed Cases: <span class="highlight">${globalTotal.toLocaleString()}</span>`;
 
         // 4. Color Scale
         const color = d3.scaleThreshold()
-            .domain([1, 10, 25, 50, 100])
+            .domain([1, 5, 10, 25, 50]) // Adjusted scale for smaller 2026 numbers
             .range(["#151515", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
 
         // 5. DRAW MAP
@@ -203,7 +205,7 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 const mapped = total - unassigned;
                 
                 showTooltip(event, d.properties.name, 
-                    `<strong>Total Cases: ${total}</strong><br>
+                    `<strong>2026 Cases: ${total}</strong><br>
                      <span class="sub-text">Mapped: ${mapped} | Unassigned: ${unassigned}</span>`
                 );
             })
@@ -257,7 +259,7 @@ const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
                 })
                 .on("mouseover", (event, d) => {
                     const val = countyData.get(d.id) || 0;
-                    showTooltip(event, d.properties.name, `Lab Confirmed: <strong>${val}</strong>`);
+                    showTooltip(event, d.properties.name, `2026 Cases: <strong>${val}</strong>`);
                 })
                 .on("mouseout", hideTooltip)
                 .style("opacity", 0)
