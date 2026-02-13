@@ -4,7 +4,7 @@
 
 An interactive, drill-down map of Measles cases in the United States, built with **D3.js**.
 
-### 🔴 [Click Here to View the Live Map](https://sethnmund.github.io/measles-map/)
+### 🔴 [Click Here to View the Live Map](https://sethmund.github.io/measles-map/)
 
 ---
 
