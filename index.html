@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Measles Map</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson@3"></script>
+</head>
+<body>
+    <div id="info-panel">
+        <h1>US Measles Tracker</h1>
+        <p>Data Source: <a href="https://github.com/CSSEGISandData/measles_data" target="_blank">JHU CSSE Measles Data</a></p>
+        <div id="stats">Loading live data...</div>
+    </div>
+    <div id="tooltip" class="hidden"></div>
+    <div id="map-container"></div>
+    <script src="script.js"></script>
+</body>
+</html>
