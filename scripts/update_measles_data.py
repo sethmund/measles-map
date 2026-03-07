@@ -7,41 +7,63 @@ import re
 from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
 
-
 def fetch_canada_data():
     """Uses Playwright to render the dynamic PHAC table."""
     url = "https://health-infobase.canada.ca/measles-rubella/"
     try:
         with sync_playwright() as p:
-            # Launch headless browser
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
-            page.goto(url)
+            page.goto(url, wait_until="networkidle")
             
-            # Wait for the specific data table to load in the DOM
+            # Wait specifically for the table ID seen in your inspection
             page.wait_for_selector("table#geoTable")
-            
-            # Extract the rendered HTML
             html_content = page.content()
             browser.close()
             
-        # Parse the extracted HTML with Pandas
+        # Parse the rendered HTML
         tables = pd.read_html(io.StringIO(html_content), attrs={"id": "geoTable"})
         df = tables[0]
         
-        # Cleanup column headers and data
-        df = df.iloc[:, [0, 2]] # Province and Total Cases columns
+        # Column 0: Province, Column 2: Total cases 2026
+        df = df.iloc[:, [0, 2]]
         df.columns = ['Province_State', 'Confirmed']
         
-        # Remove footnotes and summary rows
-        df = df[~df['Province_State'].str.contains('Canada|Total', case=False)].copy()
-        df['Province_State'] = df['Province_State'].str.replace(r'\[.*?\]', '', regex=True).str.strip()
-        df['Confirmed'] = pd.to_numeric(df['Confirmed'], errors='coerce').fillna(0).astype(int)
-        
-        # (Append your mapping logic here as before)
-        return df
+        # Cleanup: Remove 'Canada' summary and footnotes
+        df = df[~df['Province_State'].str.contains('Canada', case=False)].copy()
+        df['Province_State'] = df['Province_State'].str.replace(r'\[.*?\]|\d+', '', regex=True).str.strip()
+        df['Confirmed'] = pd.to_numeric(df['Confirmed'].astype(str).str.extract('(\d+)', expand=False), errors='coerce').fillna(0).astype(int)
+
+        canada_meta = {
+            'Alberta': {'ISO': 'CA-AB', 'Lat': 53.9333, 'Long': -116.5765},
+            'British Columbia': {'ISO': 'CA-BC', 'Lat': 53.7267, 'Long': -127.6476},
+            'Manitoba': {'ISO': 'CA-MB', 'Lat': 53.7609, 'Long': -98.8139},
+            'New Brunswick': {'ISO': 'CA-NB', 'Lat': 46.5653, 'Long': -66.4619},
+            'Newfoundland and Labrador': {'ISO': 'CA-NL', 'Lat': 53.1355, 'Long': -57.6604},
+            'Nova Scotia': {'ISO': 'CA-NS', 'Lat': 44.6820, 'Long': -63.7443},
+            'Ontario': {'ISO': 'CA-ON', 'Lat': 51.2538, 'Long': -85.3232},
+            'Prince Edward Island': {'ISO': 'CA-PE', 'Lat': 46.5107, 'Long': -63.4168},
+            'Quebec': {'ISO': 'CA-QC', 'Lat': 52.9399, 'Long': -73.5491},
+            'Saskatchewan': {'ISO': 'CA-SK', 'Lat': 52.9399, 'Long': -106.4509},
+            'Northwest Territories': {'ISO': 'CA-NT', 'Lat': 64.8255, 'Long': -124.8457},
+            'Nunavut': {'ISO': 'CA-NU', 'Lat': 70.2998, 'Long': -83.1076},
+            'Yukon': {'ISO': 'CA-YT', 'Lat': 64.2823, 'Long': -135.0000}
+        }
+
+        df = df[df['Province_State'].isin(canada_meta.keys())].copy()
+        df['Country_Region'] = 'Canada'
+        df['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        df['Deaths'], df['Recovered'] = 0, 0
+        df['Active'] = df['Confirmed']
+        df['Combined_Key'] = df['Province_State'] + ", Canada"
+        df['ISO3166_2'] = df['Province_State'].map(lambda x: canada_meta[x]['ISO'])
+        df['Lat'] = df['Province_State'].map(lambda x: canada_meta[x]['Lat'])
+        df['Long_'] = df['Province_State'].map(lambda x: canada_meta[x]['Long'])
+
+        return df[['Province_State', 'Country_Region', 'Last_Update', 'Lat', 'Long_', 
+                   'Confirmed', 'Deaths', 'Recovered', 'Active', 'Combined_Key', 'ISO3166_2']]
     except Exception as e:
-        print(f"Playwright Error: {e}")
+        print(f"Canada Playwright Error: {e}")
         return pd.DataFrame()
 
 def fetch_mexico_data():
@@ -114,12 +136,12 @@ def fetch_mexico_data():
     return pd.DataFrame()
 
 def main():
-    df_canada = fetch_canada_data()
-    df_mexico = fetch_mexico_data()
-    master_df = pd.concat([df_canada, df_mexico], ignore_index=True)
+    df_can = fetch_canada_data()
+    df_mex = fetch_mexico_data()
+    master_df = pd.concat([df_can, df_mex], ignore_index=True)
     if not master_df.empty:
         master_df.to_csv("measles_na_update.csv", index=False)
-        print("Data successfully written to measles_na_update.csv")
+        print("Update complete.")
 
 if __name__ == "__main__":
     main()
