@@ -97,11 +97,12 @@
 <div class="tooltip"></div>
 
 <script>
-// --- RELIABLE DATA CONFIGURATION ---
+// --- CONFIGURATION ---
+// Using your local repo files to avoid 404 errors
+const US_GEO = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
+const CA_GEO = "canada.json"; 
+const MX_GEO = "mx.json";
 const DATA_URL = "measles_na_update.csv";
-const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
-// Stable World Atlas for country outlines
-const WORLD_GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
 const DOMAIN = [1, 10, 50, 100, 500];
 const RANGE = ["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"];
@@ -114,101 +115,63 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
     const g = svg.append("g");
     const tooltip = d3.select(".tooltip");
 
-    const projection = d3.geoConicEqualArea()
-        .parallels([15, 60])
-        .rotate([100, 0])
-        .center([0, 38])
-        .scale(width * 0.5) 
-        .translate([width / 2, height / 2]);
-
-    const path = d3.geoPath().projection(projection);
-    const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => g.attr("transform", e.transform));
-
-    // Define Tooltip Functions (REQUIRED to fix ReferenceErrors)
-    function showTooltip(event, name, val = 0) {
+    // Defined locally to fix "ReferenceError"
+    const showTooltip = (event, name, val = 0) => {
         tooltip.style("opacity", 1)
             .html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
             .style("left", (event.pageX + 15) + "px")
             .style("top", (event.pageY - 28) + "px");
-    }
+    };
+    const hideTooltip = () => tooltip.style("opacity", 0);
 
-    function hideTooltip() { tooltip.style("opacity", 0); }
+    const projection = d3.geoConicEqualArea()
+        .parallels([15, 60]).rotate([100, 0]).center([0, 38])
+        .scale(width * 0.5).translate([width / 2, height / 2]);
+
+    const path = d3.geoPath().projection(projection);
 
     try {
-        const [us, world, rawData] = await Promise.all([
-            d3.json(ATLAS_URL),
-            d3.json(WORLD_GEO_URL),
+        const [us, ca, mx, rawData] = await Promise.all([
+            d3.json(US_GEO),
+            d3.json(CA_GEO),
+            d3.json(MX_GEO),
             d3.csv(DATA_URL)
         ]);
 
-        const masterDataMap = new Map();
-        const stateTotals = new Map();
-        let globalSum = 0;
-
+        // THE KEY FIX: Aggregating by NAME (Province_State)
+        // This captures the '00000' records for SC, UT, and VA
+        const nameDataMap = new Map();
         rawData.forEach(d => {
             const val = +d.Confirmed || 0;
-            globalSum += val;
-            if (d.Country_Region === "US") {
-                const fips = (d.ISO3166_2 || "").toString().padStart(5, "0");
-                masterDataMap.set(fips, val);
-                const stateFips = fips.substring(0, 2);
-                stateTotals.set(stateFips, (stateTotals.get(stateFips) || 0) + val);
-            } else {
-                masterDataMap.set(d.Province_State, val);
-            }
+            const name = d.Province_State;
+            nameDataMap.set(name, (nameDataMap.get(name) || 0) + val);
         });
 
         document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
-        document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-        // DRAW INTERNATIONAL (Using World Atlas countries)
-        const countries = topojson.feature(world, world.objects.countries).features;
-        const intl = countries.filter(d => d.properties.name === "Canada" || d.properties.name === "Mexico");
-
+        // Draw Canada (Admin-1)
         g.append("g").selectAll("path")
-            .data(intl).join("path")
-            .attr("class", "state")
-            .attr("d", path)
-            .attr("fill", d => color(masterDataMap.get(d.properties.name) || 0))
-            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, masterDataMap.get(d.properties.name)))
+            .data(topojson.feature(ca, ca.objects.ne_10m_admin_1_states_provinces).features)
+            .join("path").attr("class", "state").attr("d", path)
+            .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
+            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
             .on("mouseout", hideTooltip);
 
-        // DRAW US STATES
-        const states = topojson.feature(us, us.objects.states).features;
-        const counties = topojson.feature(us, us.objects.counties).features;
-
+        // Draw Mexico
         g.append("g").selectAll("path")
-            .data(states).join("path")
-            .attr("class", "state state-us")
-            .attr("d", path)
-            .attr("fill", d => color(stateTotals.get(d.id) || 0))
-            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, stateTotals.get(d.id)))
-            .on("mouseout", hideTooltip)
-            .on("click", (e, d) => {
-                const [[x0, y0], [x1, y1]] = path.bounds(d);
-                e.stopPropagation();
-                svg.transition().duration(750).call(
-                    zoom.transform, 
-                    d3.zoomIdentity.translate(width/2, height/2)
-                        .scale(Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)))
-                        .translate(-(x0 + x1) / 2, -(y0 + y1) / 2)
-                );
-                renderCounties(d, counties, masterDataMap);
-            });
+            .data(topojson.feature(mx, mx.objects.mexico).features)
+            .join("path").attr("class", "state").attr("d", path)
+            .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
+            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
+            .on("mouseout", hideTooltip);
 
-        function renderCounties(stateFeature, allCounties, dataMap) {
-            g.selectAll(".county").remove();
-            const stateCounties = allCounties.filter(c => c.id.startsWith(stateFeature.id));
-            g.append("g").selectAll("path")
-                .data(stateCounties).join("path")
-                .attr("class", "county state")
-                .attr("d", path)
-                .attr("fill", d => color(dataMap.get(d.id) || 0))
-                .on("mouseover", (e, d) => showTooltip(e, d.properties.name, dataMap.get(d.id)))
-                .on("mouseout", hideTooltip);
-        }
-
-        svg.call(zoom);
+        // Draw US States (Joining by NAME to catch '00000' FIPS codes)
+        g.append("g").selectAll("path")
+            .data(topojson.feature(us, us.objects.states).features)
+            .join("path").attr("class", "state").attr("d", path)
+            .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
+            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
+            .on("mouseout", hideTooltip);
 
     } catch (e) { 
         document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Error: ${e.message}</span>`;
