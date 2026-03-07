@@ -127,11 +127,12 @@ const showTooltip = (event, name, val = 0) => {
         .style("top", (event.pageY - 28) + "px");
 };
 
-// --- DATA LOAD & RENDER ---
 Promise.all([
-    d3.json(GEO_URL), 
+    d3.json("canada.json"), 
+    d3.json("mx.json"),     
+    d3.json("us.json"),        
     d3.csv(DATA_URL)
-]).then(([na, rawData]) => {
+]).then(([ca, mx, us, rawData]) => {
     
     const nameMap = new Map(); 
     const fipsMap = new Map(); 
@@ -144,17 +145,14 @@ Promise.all([
         if (d.Country_Region === "US") fipsMap.set(d.ISO3166_2, val);
     });
 
-    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
+    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Local Data Synchronized</span>";
     document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-// 1. EXTRACT FEATURES (Exact names from your Mapshaper export)
-    const caFeatures = topojson.feature(na, na.objects.ne_10m_admin_1_states_provinces).features;
-    const usCounties = topojson.feature(na, na.objects.counties).features;
-    
-    // US and Mexico are merged in 'states'. We split them based on the Mexico 'state_name' property.
-    const combinedStates = topojson.feature(na, na.objects.states).features;
-    const mxFeatures = combinedStates.filter(d => d.properties.state_name);
-    const usStates = combinedStates.filter(d => !d.properties.state_name);
+    // 1. EXTRACT FEATURES (Isolated Namespaces)
+    const caFeatures = topojson.feature(ca, ca.objects.ne_10m_admin_1_states_provinces).features;
+    const mxFeatures = topojson.feature(mx, mx.objects.states).features;
+    const usStates = topojson.feature(us, us.objects.states).features;
+    const usCounties = topojson.feature(us, us.objects.counties).features;
 
     // 2. DRAW INTERNATIONAL (Canada & Mexico)
     g.append("g").selectAll("path")
@@ -170,7 +168,7 @@ Promise.all([
         })
         .on("mouseout", () => tooltip.style("opacity", 0));
 
-    // 3. DRAW US STATES (Includes Zoom Interaction)
+    // 3. DRAW US STATES
     g.append("g").selectAll("path")
         .data(usStates).join("path")
         .attr("class", "state").attr("d", path)
@@ -193,7 +191,6 @@ Promise.all([
     function renderCounties(stateFeature, allCounties) {
         g.selectAll(".county-layer").remove();
         
-        // Filter counties belonging to the clicked state based on ID/FIPS prefix
         const stateCounties = allCounties.filter(c => c.id && c.id.startsWith(stateFeature.id));
         
         g.append("g").attr("class", "county-layer").selectAll("path")
@@ -201,14 +198,13 @@ Promise.all([
             .attr("d", path)
             .attr("fill", d => {
                 const countVal = fipsMap.get(d.id) || 0;
-                // Fallback to preserve state-level heatmap visualization if county data is undefined (e.g., FIPS 00000)
                 return countVal > 0 ? color(countVal) : (nameMap.get(stateFeature.properties.name) > 0 ? "#2a0000" : "#1a1a1a");
             })
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, fipsMap.get(d.id)))
             .on("mouseout", () => tooltip.style("opacity", 0));
     }
 
-svg.call(zoom).on("click", () => {
+    svg.call(zoom).on("click", () => {
         svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
         g.selectAll(".county-layer").remove();
     });
