@@ -127,12 +127,13 @@ const showTooltip = (event, name, val = 0) => {
         .style("top", (event.pageY - 28) + "px");
 };
 
+const GEO_URL = "NA.json"; // Using your newly uploaded unified file!
+const DATA_URL = "measles_na_update.csv";
+
 Promise.all([
-    d3.json("canada.json"), 
-    d3.json("mx.json"),     
-    d3.json("us.json"),        
+    d3.json(GEO_URL), 
     d3.csv(DATA_URL)
-]).then(([ca, mx, us, rawData]) => {
+]).then(([na, rawData]) => {
     
     const nameMap = new Map(); 
     const fipsMap = new Map(); 
@@ -145,37 +146,43 @@ Promise.all([
         if (d.Country_Region === "US") fipsMap.set(d.ISO3166_2, val);
     });
 
-    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Local Data Synchronized</span>";
+    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Unified Map Synchronized</span>";
     document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-    // 1. EXTRACT FEATURES (Isolated Namespaces)
-    const caFeatures = topojson.feature(ca, ca.objects.ne_10m_admin_1_states_provinces).features;
-    const mxFeatures = topojson.feature(mx, mx.objects.states).features;
-    const usStates = topojson.feature(us, us.objects.states).features;
-    const usCounties = topojson.feature(us, us.objects.counties).features;
+    // 1. DYNAMIC FEATURE EXTRACTION
+    // This prevents crashes by grabbing all layers, no matter their Mapshaper names
+    let allStates = [];
+    let usCounties = [];
 
-    // 2. DRAW INTERNATIONAL (Canada & Mexico)
+    Object.keys(na.objects).forEach(key => {
+        const features = topojson.feature(na, na.objects[key]).features;
+        // If the layer name implies counties, save it for the zoom drill-down
+        if (key.toLowerCase().includes("count")) {
+            usCounties = features;
+        } else {
+            // Otherwise, it's a state/province for the base map
+            allStates = allStates.concat(features);
+        }
+    });
+
+    // 2. DRAW ALL BASE STATES & PROVINCES
     g.append("g").selectAll("path")
-        .data([...caFeatures, ...mxFeatures])
+        .data(allStates)
         .join("path").attr("class", "state").attr("d", path)
         .attr("fill", d => {
-            const regionName = d.properties.name || d.properties.state_name;
+            // Catch variations in property names across the 3 countries
+            const regionName = d.properties.name || d.properties.state_name || d.properties.NOM_ENT;
             return color(nameMap.get(regionName) || 0);
         })
         .on("mouseover", (e, d) => {
-            const regionName = d.properties.name || d.properties.state_name;
+            const regionName = d.properties.name || d.properties.state_name || d.properties.NOM_ENT;
             showTooltip(e, regionName, nameMap.get(regionName));
         })
-        .on("mouseout", () => tooltip.style("opacity", 0));
-
-    // 3. DRAW US STATES
-    g.append("g").selectAll("path")
-        .data(usStates).join("path")
-        .attr("class", "state").attr("d", path)
-        .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
-        .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
         .on("mouseout", () => tooltip.style("opacity", 0))
         .on("click", (event, d) => {
+            // Only trigger zoom if the clicked region has a US-style ID
+            if (!d.id || d.id.length > 2) return; 
+
             event.stopPropagation();
             const [[x0, y0], [x1, y1]] = path.bounds(d);
             svg.transition().duration(750).call(
@@ -187,7 +194,7 @@ Promise.all([
             renderCounties(d, usCounties);
         });
 
-    // 4. COUNTY DRILL-DOWN LOGIC
+    // 3. COUNTY DRILL-DOWN LOGIC
     function renderCounties(stateFeature, allCounties) {
         g.selectAll(".county-layer").remove();
         
