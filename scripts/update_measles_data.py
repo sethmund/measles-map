@@ -5,19 +5,42 @@ import zipfile
 from datetime import datetime, timedelta
 
 def fetch_canada_data():
-    """Scrapes weekly provincial measles data from PHAC Health Infobase."""
+    """Scrapes weekly provincial measles data from PHAC Health Infobase using a robust match."""
     url = "https://health-infobase.canada.ca/measles-rubella/"
     try:
-        # Target the static column header rather than the table title
-        tables = pd.read_html(url, match="Province or territory")
-        df = tables[0]
+        # Instead of an exact string, we tell pandas to look for a table 
+        # that has 'Province or territory' in its text.
+        response = requests.get(url, timeout=15)
+        response.raise_for_status()
         
+        # We search specifically for the table that contains our target header
+        tables = pd.read_html(response.text)
+        
+        df = None
+        for t in tables:
+            if any("Province or territory" in str(col) for col in t.columns):
+                df = t
+                break
+        
+        if df is None:
+            raise ValueError("Could not find the Canada data table on the page.")
+        
+        # Standardize column names based on position to avoid footnote issues
         df = df.rename(columns={
             df.columns[0]: 'Province_State',
             df.columns[2]: 'Confirmed' 
         })
-        df = df[df['Province_State'] != 'Canada'].copy()
         
+        # Clean 'Canada' summary and empty rows
+        df = df[df['Province_State'].str.contains('Canada|Province', case=False) == False].copy()
+        
+        # Cleanup: Remove footnotes like [3] or [Footnote] from the province names
+        df['Province_State'] = df['Province_State'].str.replace(r'\[.*\]', '', regex=True).str.strip()
+        
+        # The 'Confirmed' column often has non-numeric characters (footnotes)
+        # We strip everything except digits
+        df['Confirmed'] = df['Confirmed'].astype(str).str.extract('(\d+)').fillna(0).astype(int)
+
         canada_meta = {
             'Alberta': {'ISO': 'CA-AB', 'Lat': 53.9333, 'Long': -116.5765},
             'British Columbia': {'ISO': 'CA-BC', 'Lat': 53.7267, 'Long': -127.6476},
