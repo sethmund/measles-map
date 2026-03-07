@@ -124,14 +124,12 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
     const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => g.attr("transform", e.transform));
 
     try {
-        // Parallel Load
-        const [us, na, rawData] = await Promise.all([
+        const [us, world, rawData] = await Promise.all([
             d3.json(ATLAS_URL),
             d3.json(NA_GEO_URL),
             d3.csv(DATA_URL)
         ]);
 
-        // 1. Unified Data Lookup
         const masterDataMap = new Map();
         const stateTotals = new Map();
         let globalSum = 0;
@@ -139,24 +137,28 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
         rawData.forEach(d => {
             const val = +d.Confirmed || 0;
             globalSum += val;
-            
             if (d.Country_Region === "US") {
                 const fips = (d.ISO3166_2 || "").toString().padStart(5, "0");
-                const stateFips = fips.substring(0, 2);
                 masterDataMap.set(fips, val);
+                const stateFips = fips.substring(0, 2);
                 stateTotals.set(stateFips, (stateTotals.get(stateFips) || 0) + val);
             } else {
                 masterDataMap.set(d.Province_State, val);
             }
         });
 
-        // 2. UI Refresh
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Connection Secure</span>";
         document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-        // 3. Draw Canada & Mexico (topojson na_states)
+        // DRAW INTERNATIONAL (Canada/Mexico)
+        // We extract countries from the world atlas and filter for NA
+        const countries = topojson.feature(world, world.objects.countries).features;
+        const naCountries = countries.filter(d => 
+            d.properties.name === "Canada" || d.properties.name === "Mexico"
+        );
+
         g.append("g").selectAll("path")
-            .data(topojson.feature(na, na.objects.na_states).features.filter(d => d.properties.country !== "USA"))
+            .data(naCountries)
             .join("path")
             .attr("class", "state")
             .attr("d", path)
@@ -164,7 +166,7 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, masterDataMap.get(d.properties.name)))
             .on("mouseout", hideTooltip);
 
-        // 4. Draw US States
+        // DRAW US STATES
         const states = topojson.feature(us, us.objects.states).features;
         const counties = topojson.feature(us, us.objects.counties).features;
 
@@ -174,56 +176,36 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
             .attr("class", "state state-us")
             .attr("d", path)
             .attr("fill", d => color(stateTotals.get(d.id) || 0))
-            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, stateTotals.get(d.id)))
-            .on("mouseout", hideTooltip)
             .on("click", (e, d) => {
                 const [[x0, y0], [x1, y1]] = path.bounds(d);
                 e.stopPropagation();
                 svg.transition().duration(750).call(
                     zoom.transform, 
-                    d3.zoomIdentity.translate(width/2, height/2).scale(Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height))).translate(-(x0 + x1) / 2, -(y0 + y1) / 2)
+                    d3.zoomIdentity.translate(width/2, height/2)
+                        .scale(Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)))
+                        .translate(-(x0 + x1) / 2, -(y0 + y1) / 2)
                 );
-                renderCounties(d);
+                renderCounties(d, counties, masterDataMap);
             });
 
-        // 5. County View
-        function renderCounties(stateFeature) {
+        function renderCounties(stateFeature, allCounties, dataMap) {
             g.selectAll(".county").remove();
-            const stateCounties = counties.filter(c => c.id.startsWith(stateFeature.id));
+            const stateCounties = allCounties.filter(c => c.id.startsWith(stateFeature.id));
             g.append("g").selectAll("path")
                 .data(stateCounties)
                 .join("path")
                 .attr("class", "county state")
                 .attr("d", path)
-                .attr("fill", d => color(masterDataMap.get(d.id) || 0))
-                .on("mouseover", (e, d) => showTooltip(e, d.properties.name, masterDataMap.get(d.id)))
+                .attr("fill", d => color(dataMap.get(d.id) || 0))
+                .on("mouseover", (e, d) => showTooltip(e, d.properties.name, dataMap.get(d.id)))
                 .on("mouseout", hideTooltip);
         }
 
-        svg.call(zoom).on("click", () => {
-            svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-            g.selectAll(".county").remove();
-        });
-
+        svg.call(zoom);
         drawLegend();
 
-    } catch (e) { document.getElementById("loading-msg").textContent = "❌ Error: " + e.message; }
-
-    function showTooltip(event, name, val = 0) {
-        tooltip.style("opacity", 1)
-            .html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
-            .style("left", (event.pageX + 15) + "px")
-            .style("top", (event.pageY - 28) + "px");
-    }
-    function hideTooltip() { tooltip.style("opacity", 0); }
-
-    function drawLegend() {
-        const legend = d3.select("#legend-container").append("svg").attr("width", 210).attr("height", 45);
-        const legendData = DOMAIN.map((d, i) => ({ color: RANGE[i+1], label: d }));
-        legend.selectAll("rect").data(legendData).join("rect")
-            .attr("x", (d, i) => i * 35).attr("y", 10).attr("width", 35).attr("height", 10).attr("fill", d => d.color);
-        legend.selectAll("text").data(legendData).join("text")
-            .attr("x", (d, i) => i * 35).attr("y", 35).style("font-size", "10px").style("fill", "#888").text(d => d.label);
+    } catch (e) { 
+        document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Error: ${e.message}</span>`;
     }
 })();
 </script>
