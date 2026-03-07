@@ -6,6 +6,7 @@ import json
 import re
 from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
+import os
 
 def fetch_us_data():
     """Fallback aggregator if jhu_us_summary.csv is missing."""
