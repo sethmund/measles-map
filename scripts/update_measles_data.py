@@ -4,41 +4,65 @@ import io
 import zipfile
 from datetime import datetime, timedelta
 
+import pandas as pd
+import requests
+import io
+import zipfile
+from datetime import datetime, timedelta
+from io import StringIO  # Added to fix the warning in your logs
+
 def fetch_canada_data():
-    """Scrapes weekly provincial measles data from PHAC Health Infobase using a robust match."""
+    """Scrapes Canada data by searching for known province names in all tables."""
     url = "https://health-infobase.canada.ca/measles-rubella/"
     try:
-        # Instead of an exact string, we tell pandas to look for a table 
-        # that has 'Province or territory' in its text.
         response = requests.get(url, timeout=15)
         response.raise_for_status()
         
-        # We search specifically for the table that contains our target header
-        tables = pd.read_html(response.text)
+        # Wrap response in StringIO to satisfy the new pandas requirement
+        tables = pd.read_html(StringIO(response.text))
         
         df = None
+        # Provinces we expect to see in the correct table
+        targets = ["Manitoba", "Alberta", "Ontario", "Saskatchewan"]
+        
         for t in tables:
-            if any("Province or territory" in str(col) for col in t.columns):
+            # Flatten columns to check multi-index or weird headers
+            col_text = " ".join(t.columns.astype(str).tolist())
+            # Also check the first few rows of data
+            row_text = ""
+            if len(t) > 0:
+                row_text = " ".join(t.iloc[0].astype(str).tolist())
+            
+            if any(p in col_text for p in targets) or any(p in row_text for p in targets):
                 df = t
                 break
         
         if df is None:
-            raise ValueError("Could not find the Canada data table on the page.")
-        
-        # Standardize column names based on position to avoid footnote issues
+            raise ValueError("Could not find a table containing Canadian provinces.")
+
+        # Sometimes pandas treats the first row as the header; fix if needed
+        if "Manitoba" in " ".join(df.columns.astype(str)):
+            # If provinces are in the header, we need to shift them down
+            df.loc[-1] = df.columns
+            df.index = df.index + 1
+            df = df.sort_index()
+
+        # Rename based on content detection
+        # Column 0 is usually the province, Column 2 is usually the total cases
         df = df.rename(columns={
             df.columns[0]: 'Province_State',
             df.columns[2]: 'Confirmed' 
         })
         
-        # Clean 'Canada' summary and empty rows
-        df = df[df['Province_State'].str.contains('Canada|Province', case=False) == False].copy()
+        # Data Cleaning
+        df['Province_State'] = df['Province_State'].astype(str)
+        # Remove 'Canada' summary, table headers, and junk
+        df = df[~df['Province_State'].str.contains('Canada|Province|territory|Total', case=False)].copy()
         
-        # Cleanup: Remove footnotes like [3] or [Footnote] from the province names
+        # Clean province names (remove footnotes like [3])
         df['Province_State'] = df['Province_State'].str.replace(r'\[.*\]', '', regex=True).str.strip()
         
-        # The 'Confirmed' column often has non-numeric characters (footnotes)
-        # We strip everything except digits
+        # Clean case counts (keep only digits)
         df['Confirmed'] = df['Confirmed'].astype(str).str.extract('(\d+)').fillna(0).astype(int)
 
         canada_meta = {
@@ -56,6 +80,9 @@ def fetch_canada_data():
             'Nunavut': {'ISO': 'CA-NU', 'Lat': 70.2998, 'Long': -83.1076},
             'Yukon': {'ISO': 'CA-YT', 'Lat': 64.2823, 'Long': -135.0000}
         }
+        
+        # Only keep rows that match our metadata list
+        df = df[df['Province_State'].isin(canada_meta.keys())].copy()
         
         df['Country_Region'] = 'Canada'
         df['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
