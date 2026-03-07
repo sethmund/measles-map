@@ -147,19 +147,20 @@ Promise.all([
     document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
     document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-    // 1. EXTRACT FEATURES 
-    // IMPORTANT: Replace 'canada', 'mexico', 'states', and 'counties' with your actual NA.json object keys.
-    const caFeatures = topojson.feature(na, na.objects.canada).features;
-    const mxFeatures = topojson.feature(na, na.objects.mexico).features;
-    const usStates = topojson.feature(na, na.objects.states).features;
+// 1. EXTRACT FEATURES (Exact names from your Mapshaper export)
+    const caFeatures = topojson.feature(na, na.objects.ne_10m_admin_1_states_provinces).features;
     const usCounties = topojson.feature(na, na.objects.counties).features;
+    
+    // US and Mexico are merged in 'states'. We split them based on the Mexico 'state_name' property.
+    const combinedStates = topojson.feature(na, na.objects.states).features;
+    const mxFeatures = combinedStates.filter(d => d.properties.state_name);
+    const usStates = combinedStates.filter(d => !d.properties.state_name);
 
     // 2. DRAW INTERNATIONAL (Canada & Mexico)
     g.append("g").selectAll("path")
         .data([...caFeatures, ...mxFeatures])
         .join("path").attr("class", "state").attr("d", path)
         .attr("fill", d => {
-            // Target 'name' for Canada, 'state_name' for Mexico
             const regionName = d.properties.name || d.properties.state_name;
             return color(nameMap.get(regionName) || 0);
         })
