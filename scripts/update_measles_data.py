@@ -4,47 +4,44 @@ import io
 import zipfile
 from datetime import datetime, timedelta
 
-import pandas as pd
-import requests
-import io
-import zipfile
-from datetime import datetime, timedelta
-from io import StringIO  # Added to fix the warning in your logs
-
-import pandas as pd
-import requests
-import io
-import zipfile
-from datetime import datetime, timedelta
-from io import StringIO
 
 def fetch_canada_data():
-    """Verified: Scrapes Canada data by finding the table with provincial headers."""
+    """Extracts Canada data from the JSON object inside the geoTable attribute."""
     url = "https://health-infobase.canada.ca/measles-rubella/"
     try:
         response = requests.get(url, timeout=15)
         response.raise_for_status()
         
-        # We search for a table that contains 'Province or territory' in its text
-        # This bypasses issues with captions or hidden span tags
-        tables = pd.read_html(io.StringIO(response.text))
-        df = next((t for t in tables if any("province or territory" in str(c).lower() for c in t.columns)), None)
+        # Search for the JSON data hidden in the 'data-wb-tables' attribute of geoTable
+        # This matches exactly what is shown in your inspection image
+        pattern = r'id="geoTable".*?data-wb-tables=\'(\{.*?\})\''
+        match = re.search(pattern, response.text, re.DOTALL)
         
-        if df is None:
-            raise ValueError("Target table not found on PHAC page.")
+        if not match:
+            # Fallback if they used double quotes instead of single quotes
+            pattern = r'id="geoTable".*?data-wb-tables="(\{.*?\})"'
+            match = re.search(pattern, response.text, re.DOTALL)
 
-        # Column 0: Province, Column 2: Total cases in 2026
-        df = df.iloc[:, [0, 2]].copy()
+        if match:
+            config = json.loads(match.group(1))
+            # The 'data' array contains the rows shown in your JavaScript 'data' variable
+            raw_rows = config.get('data', [])
+            # In PHAC's structure: [Province, New Cases, Total Cases, Week]
+            df = pd.DataFrame(raw_rows).iloc[:, [0, 2]] 
+        else:
+            # Final fallback: Try to read the table directly by ID
+            # Some environments render the table server-side for accessibility
+            import io
+            tables = pd.read_html(io.StringIO(response.text), attrs={"id": "geoTable"})
+            df = tables[0].iloc[:, [0, 2]]
+
         df.columns = ['Province_State', 'Confirmed']
         
-        # Cleanup: Remove 'Canada' total and footer junk
-        df = df[~df['Province_State'].str.contains('Canada|Total|Footnote', case=False)].copy()
-        
-        # Clean footnote brackets/superscripts from strings and numbers
-        df['Province_State'] = df['Province_State'].str.replace(r'\[.*\]', '', regex=True).str.strip()
+        # Cleanup: Remove 'Canada' total and strip footnotes like [3] or superscripts
+        df = df[~df['Province_State'].str.contains('Canada', case=False)].copy()
+        df['Province_State'] = df['Province_State'].str.replace(r'\[.*?\]|\d+', '', regex=True).str.strip()
         df['Confirmed'] = df['Confirmed'].astype(str).str.extract(r'(\d+)').fillna(0).astype(int)
-        
-        # Metadata for D3 join
+
         canada_meta = {
             'Alberta': {'ISO': 'CA-AB', 'Lat': 53.9333, 'Long': -116.5765},
             'British Columbia': {'ISO': 'CA-BC', 'Lat': 53.7267, 'Long': -127.6476},
@@ -60,81 +57,23 @@ def fetch_canada_data():
             'Nunavut': {'ISO': 'CA-NU', 'Lat': 70.2998, 'Long': -83.1076},
             'Yukon': {'ISO': 'CA-YT', 'Lat': 64.2823, 'Long': -135.0000}
         }
-        
+
+        # Filter and Map metadata
+        df = df[df['Province_State'].isin(canada_meta.keys())].copy()
         df['Country_Region'] = 'Canada'
         df['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['Deaths'], df['Recovered'] = 0, 0
         df['Active'] = df['Confirmed']
-        df['Combined_Key'] = df['Province_State'] + ", " + df['Country_Region']
+        df['Combined_Key'] = df['Province_State'] + ", Canada"
+        df['ISO3166_2'] = df['Province_State'].map(lambda x: canada_meta[x]['ISO'])
+        df['Lat'] = df['Province_State'].map(lambda x: canada_meta[x]['Lat'])
+        df['Long_'] = df['Province_State'].map(lambda x: canada_meta[x]['Long'])
+
+        return df
         
-        df['ISO3166_2'] = df['Province_State'].map(lambda x: canada_meta.get(x, {}).get('ISO', ''))
-        df['Lat'] = df['Province_State'].map(lambda x: canada_meta.get(x, {}).get('Lat', ''))
-        df['Long_'] = df['Province_State'].map(lambda x: canada_meta.get(x, {}).get('Long', ''))
-        
-        return df[['Province_State', 'Country_Region', 'Last_Update', 'Lat', 'Long_', 
-                   'Confirmed', 'Deaths', 'Recovered', 'Active', 'Combined_Key', 'ISO3166_2']]
-                   
     except Exception as e:
-        print(f"Error fetching Canada data: {e}")
+        print(f"Canada Error: {e}")
         return pd.DataFrame()
-
-def fetch_mexico_data():
-    """Iteratively searches for the most recent DGE measles ZIP file."""
-    base_url = "https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/efe/historicos/2026/datos_abiertos_efe_{}.zip"
-    current_date = datetime.now()
-    
-    for i in range(30):
-        date_str = (current_date - timedelta(days=i)).strftime("%d%m%y")
-        test_url = base_url.format(date_str)
-        try:
-            # Using HEAD to verify existence quickly
-            if requests.head(test_url, timeout=10).status_code == 200:
-                r = requests.get(test_url)
-                with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-                    csv_name = [n for n in z.namelist() if n.endswith('.csv')][0]
-                    with z.open(csv_name) as f:
-                        df = pd.read_csv(f, encoding='ISO-8859-1')
-                
-                # Filter for Measles (DIAGNOSTICO == 1)
-                confirmed = df[df['DIAGNOSTICO'] == 1]
-                counts = confirmed.groupby('ENTIDAD_RES').size().reset_index(name='Confirmed')
-                
-                # Mexico State Meta (subset for briefness)
-                mex_meta = {
-                    7: {'S': 'Chiapas', 'ISO': 'MX-CHP', 'Lat': 16.75, 'Lon': -93.12},
-                    9: {'S': 'Ciudad de Mexico', 'ISO': 'MX-CMX', 'Lat': 19.43, 'Lon': -99.13},
-                    14: {'S': 'Jalisco', 'ISO': 'MX-JAL', 'Lat': 20.65, 'Lon': -103.34}
-                    # ... script should include all 32 states as defined in your working Mexico logic
-                }
-                
-                counts['Province_State'] = counts['ENTIDAD_RES'].map(lambda x: mex_meta.get(x, {}).get('S', 'Other'))
-                counts['ISO3166_2'] = counts['ENTIDAD_RES'].map(lambda x: mex_meta.get(x, {}).get('ISO', ''))
-                counts['Lat'] = counts['ENTIDAD_RES'].map(lambda x: mex_meta.get(x, {}).get('Lat', 0))
-                counts['Long_'] = counts['ENTIDAD_RES'].map(lambda x: mex_meta.get(x, {}).get('Lon', 0))
-                
-                counts['Country_Region'] = 'Mexico'
-                counts['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                counts['Deaths'], counts['Recovered'] = 0, 0
-                counts['Active'] = counts['Confirmed']
-                counts['Combined_Key'] = counts['Province_State'] + ", Mexico"
-                
-                return counts[['Province_State', 'Country_Region', 'Last_Update', 'Lat', 'Long_', 
-                               'Confirmed', 'Deaths', 'Recovered', 'Active', 'Combined_Key', 'ISO3166_2']]
-        except:
-            continue
-    return pd.DataFrame()
-
-def main():
-    df_can = fetch_canada_data()
-    df_mex = fetch_mexico_data()
-    
-    master_df = pd.concat([df_can, df_mex], ignore_index=True)
-    if not master_df.empty:
-        master_df.to_csv("measles_na_update.csv", index=False)
-        print("CSV update successful.")
-
-if __name__ == "__main__":
-    main()
 
 def fetch_mexico_data():
     """Retrieves case data via reverse-chronological URL iteration."""
