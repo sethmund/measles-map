@@ -27,7 +27,7 @@ jobs:
           pip install pandas requests lxml beautifulsoup4
 
       - name: Execute ETL script
-        run: python update_measles_data.py # Ensure this matches your script filename
+        run: python scripts/update_measles_data.py
 
       - name: Commit and push changes
         run: |
