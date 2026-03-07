@@ -1,13 +1,12 @@
-name: Test JHU Logic
+name: Update Measles Data
 
 on:
-  push:
-    paths:
-      - 'scripts/process_jhu_data.py'
+  schedule:
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
-  test-jhu:
+  update-data:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -23,15 +22,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas
+          pip install pandas requests playwright beautifulsoup4
+          python -m playwright install chromium --with-deps
 
-      - name: Run JHU Processor
+      - name: Process JHU US Data
         run: python scripts/process_jhu_data.py
 
-      - name: Commit and Push Results
+      - name: Run North American ETL
+        run: python scripts/update_measles_data.py
+
+      - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add jhu_us_summary.csv
-          # Prevent failure if no changes occurred
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated JHU data update: $(date -u +'%Y-%m-%d')" && git push)
+          git add measles_na_update.csv jhu_us_summary.csv
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated data update: $(date -u +'%Y-%m-%d')" && git push)
