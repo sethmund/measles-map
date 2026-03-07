@@ -8,26 +8,44 @@ from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
 
 def fetch_us_data():
-    """Retrieves and aggregates JHU US county-level measles data."""
+    """Aggregates JHU US daily data into a 2026 YTD summary."""
     jhu_url = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_daily_cases_by_county.csv"
     try:
+        # Load JHU data
         df = pd.read_csv(jhu_url)
         
-        # Filter for 2026 confirmed cases only
-        df = df[(df['date'].str.startswith('2026')) & 
-                (df['outcome_type'] == 'case_lab-confirmed')]
+        # Ensure date is string and filter for 2026
+        df['date'] = df['date'].astype(str)
+        df_2026 = df[df['date'].str.startswith('2026')].copy()
         
-        # Aggregate by FIPS (location_id)
-        us_agg = df.groupby(['location_id', 'location_name']).agg({'value': 'sum'}).reset_index()
-        us_agg.columns = ['FIPS', 'Combined_Key', 'Confirmed']
+        # JHU uses 'outcome_type' to distinguish between confirmed/suspected
+        # We target 'case_lab-confirmed' for the 2026 map
+        df_2026 = df_2026[df_2026['outcome_type'] == 'case_lab-confirmed']
         
-        # Standardize for your NA schema
-        us_agg['Province_State'] = us_agg['Combined_Key'].str.split(',').str[-1].strip()
+        if df_2026.empty:
+            print("Warning: No US 2026 records found. Check JHU date format.")
+            return pd.DataFrame()
+
+        # Group by location_id (FIPS) to get the YTD sum
+        us_agg = df_2026.groupby(['location_id', 'location_name']).agg({'value': 'sum'}).reset_index()
+        
+        # Standardize Columns to match CA/MX schema
+        us_agg = us_agg.rename(columns={
+            'location_id': 'ISO3166_2',
+            'location_name': 'Combined_Key',
+            'value': 'Confirmed'
+        })
+        
+        # Ensure FIPS is a 5-digit string (e.g., '01001')
+        us_agg['ISO3166_2'] = us_agg['ISO3166_2'].astype(str).str.replace('.0', '', regex=False).str.zfill(5)
+        
+        # Extract Province_State from "County, State" format
+        us_agg['Province_State'] = us_agg['Combined_Key'].str.split(',').str[-1].str.strip()
         us_agg['Country_Region'] = 'US'
         us_agg['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        us_agg['ISO3166_2'] = us_agg['FIPS'].astype(str).str.zfill(5) # Keep FIPS for US
         
-        return us_agg
+        return us_agg[['Province_State', 'Country_Region', 'Last_Update', 'Confirmed', 'Combined_Key', 'ISO3166_2']]
+    
     except Exception as e:
         print(f"US Data Error: {e}")
         return pd.DataFrame()
