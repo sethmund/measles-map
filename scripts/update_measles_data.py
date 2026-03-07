@@ -8,7 +8,8 @@ def fetch_canada_data():
     """Scrapes weekly provincial measles data from PHAC Health Infobase."""
     url = "https://health-infobase.canada.ca/measles-rubella/"
     try:
-        tables = pd.read_html(url, match="Geographic distribution")
+        # Target the static column header rather than the table title
+        tables = pd.read_html(url, match="Province or territory")
         df = tables[0]
         
         df = df.rename(columns={
