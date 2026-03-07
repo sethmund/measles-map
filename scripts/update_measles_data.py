@@ -159,25 +159,34 @@ def fetch_mexico_data():
     return pd.DataFrame()
 
 def main():
-    print("Starting North American Master Merge...")
+    print("--- Starting North American Master Merge ---")
+    
+    # 1. Fetch International Data
     df_can = fetch_canada_data()
     df_mex = fetch_mexico_data()
+    print(f"Collected Canada: {len(df_can)} rows | Mexico: {len(df_mex)} rows")
     
-    # Load the verified JHU data you just generated
-    try:
+    # 2. Load Local JHU Summary with persistence check
+    if os.path.exists("jhu_us_summary.csv"):
         df_usa = pd.read_csv("jhu_us_summary.csv", dtype={'ISO3166_2': str})
-        print(f"Loaded {len(df_usa)} US records from jhu_us_summary.csv")
-    except FileNotFoundError:
-        print("Warning: jhu_us_summary.csv not found. Running US fetcher...")
+        print(f"Merge Sync: Successfully loaded {len(df_usa)} US rows from local file.")
+    else:
+        print("Warning: jhu_us_summary.csv not found in workspace. Running Fallback fetcher...")
         df_usa = fetch_us_data()
 
-    # Final Concatenation
-    master_df = pd.concat([df_can, df_mex, df_usa], ignore_index=True)
+    # 3. Defensive Concatenation
+    # Ensures columns align even if one source has extra metadata
+    master_df = pd.concat([df_can, df_mex, df_usa], ignore_index=True, sort=False)
     
     if not master_df.empty:
-        # Ensure FIPS leading zeros are preserved in the final output
+        # Standardize FIPS/ISO strings for D3 mapping
         if 'ISO3166_2' in master_df.columns:
-            master_df['ISO3166_2'] = master_df['ISO3166_2'].astype(str).str.zfill(5)
+            master_df['ISO3166_2'] = master_df['ISO3166_2'].astype(str).str.split('.').str[0].str.zfill(5)
             
         master_df.to_csv("measles_na_update.csv", index=False)
-        print("Success: measles_na_update.csv is now complete with US data.")
+        print(f"Success: Master file contains {len(master_df)} total records.")
+    else:
+        print("Fatal Error: All data sources returned empty sets.")
+
+if __name__ == "__main__":
+    main()
