@@ -97,8 +97,8 @@
 <div class="tooltip"></div>
 
 <script>
-// --- 1. GLOBAL INITIALIZATION (Fixes ReferenceErrors) ---
-const US_GEO_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
+// --- CONFIGURATION ---
+const GEO_URL = "NA.json";
 const DATA_URL = "measles_na_update.csv";
 
 const width = window.innerWidth, height = window.innerHeight;
@@ -120,7 +120,6 @@ const zoom = d3.zoom()
     .scaleExtent([1, 12])
     .on("zoom", (event) => g.attr("transform", event.transform));
 
-// Tooltip defined in scope
 const showTooltip = (event, name, val = 0) => {
     tooltip.style("opacity", 1)
         .html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
@@ -128,12 +127,11 @@ const showTooltip = (event, name, val = 0) => {
         .style("top", (event.pageY - 28) + "px");
 };
 
+// --- DATA LOAD & RENDER ---
 Promise.all([
-    d3.json("canada.json"), 
-    d3.json("mx.json"),     
-    d3.json(US_GEO_URL),        
+    d3.json(GEO_URL), 
     d3.csv(DATA_URL)
-]).then(([ca, mx, us, rawData]) => {
+]).then(([na, rawData]) => {
     
     const nameMap = new Map(); 
     const fipsMap = new Map(); 
@@ -146,33 +144,29 @@ Promise.all([
         if (d.Country_Region === "US") fipsMap.set(d.ISO3166_2, val);
     });
 
-    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● North America Sync Complete</span>";
+    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
     document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-    // 3. DRAW CANADA (Auto-detecting the layer name)
-    const caLayer = Object.keys(ca.objects)[0];
+    // 1. EXTRACT FEATURES 
+    // IMPORTANT: Replace 'canada', 'mexico', 'states', and 'counties' with your actual NA.json object keys.
+    const caFeatures = topojson.feature(na, na.objects.canada).features;
+    const mxFeatures = topojson.feature(na, na.objects.mexico).features;
+    const usStates = topojson.feature(na, na.objects.states).features;
+    const usCounties = topojson.feature(na, na.objects.counties).features;
+
+    [Image of a D3.js data join workflow showing GeoJSON properties being mapped to CSV data values]
+
+    // 2. DRAW INTERNATIONAL (Canada & Mexico)
     g.append("g").selectAll("path")
-        .data(topojson.feature(ca, ca.objects[caLayer]).features)
+        .data([...caFeatures, ...mxFeatures])
         .join("path").attr("class", "state").attr("d", path)
-        .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
-        .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
+        .attr("fill", d => color(nameMap.get(d.properties.name || d.properties.NOM_ENT) || 0))
+        .on("mouseover", (e, d) => showTooltip(e, d.properties.name || d.properties.NOM_ENT, nameMap.get(d.properties.name || d.properties.NOM_ENT)))
         .on("mouseout", () => tooltip.style("opacity", 0));
 
-    // 4. DRAW MEXICO (Auto-detecting the layer name to prevent the crash)
-    const mxLayer = Object.keys(mx.objects)[0];
+    // 3. DRAW US STATES (Includes Zoom Interaction)
     g.append("g").selectAll("path")
-        .data(topojson.feature(mx, mx.objects[mxLayer]).features)
-        .join("path").attr("class", "state").attr("d", path)
-        .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
-        .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
-        .on("mouseout", () => tooltip.style("opacity", 0));
-
-    // 5. DRAW US STATES
-    const states = topojson.feature(us, us.objects.states).features;
-    const counties = topojson.feature(us, us.objects.counties).features;
-
-    g.append("g").selectAll("path")
-        .data(states).join("path")
+        .data(usStates).join("path")
         .attr("class", "state").attr("d", path)
         .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
         .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
@@ -186,32 +180,32 @@ Promise.all([
                     .scale(Math.min(8, 0.9 / Math.max((x1-x0)/width, (y1-y0)/height)))
                     .translate(-(x0+x1)/2, -(y0+y1)/2)
             );
-            renderCounties(d, counties);
+            renderCounties(d, usCounties);
         });
 
+    // 4. COUNTY DRILL-DOWN LOGIC
     function renderCounties(stateFeature, allCounties) {
         g.selectAll(".county-layer").remove();
-        const stateCounties = allCounties.filter(c => c.id.startsWith(stateFeature.id));
+        
+        // Filter counties belonging to the clicked state based on ID/FIPS prefix
+        const stateCounties = allCounties.filter(c => c.id && c.id.startsWith(stateFeature.id));
         
         g.append("g").attr("class", "county-layer").selectAll("path")
             .data(stateCounties).join("path").attr("class", "state county")
             .attr("d", path)
             .attr("fill", d => {
                 const countVal = fipsMap.get(d.id) || 0;
+                // Fallback to preserve state-level heatmap visualization if county data is undefined (e.g., FIPS 00000)
                 return countVal > 0 ? color(countVal) : (nameMap.get(stateFeature.properties.name) > 0 ? "#2a0000" : "#1a1a1a");
             })
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, fipsMap.get(d.id)))
             .on("mouseout", () => tooltip.style("opacity", 0));
     }
 
+    // Reset view on background click
     svg.call(zoom).on("click", () => {
         svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-        g.selectAll(".county-layer").remove();
-    });
-
-}).catch(err => {
-    document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Load Error: ${err.message}</span>`;
-});
+        g.selectAll(".
 </script>
 </body>
 </html>
