@@ -97,11 +97,12 @@
 <div class="tooltip"></div>
 
 <script>
-// --- MAP & DATA CONFIGURATION ---
+// --- RELIABLE DATA CONFIGURATION ---
 const DATA_URL = "measles_na_update.csv";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
-const NA_GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
-    
+// Stable World Atlas for country outlines
+const WORLD_GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
+
 const DOMAIN = [1, 10, 50, 100, 500];
 const RANGE = ["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"];
 const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
@@ -123,10 +124,20 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
     const path = d3.geoPath().projection(projection);
     const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => g.attr("transform", e.transform));
 
+    // Define Tooltip Functions (REQUIRED to fix ReferenceErrors)
+    function showTooltip(event, name, val = 0) {
+        tooltip.style("opacity", 1)
+            .html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
+            .style("left", (event.pageX + 15) + "px")
+            .style("top", (event.pageY - 28) + "px");
+    }
+
+    function hideTooltip() { tooltip.style("opacity", 0); }
+
     try {
         const [us, world, rawData] = await Promise.all([
             d3.json(ATLAS_URL),
-            d3.json(NA_GEO_URL),
+            d3.json(WORLD_GEO_URL),
             d3.csv(DATA_URL)
         ]);
 
@@ -147,19 +158,15 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
             }
         });
 
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Connection Secure</span>";
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
         document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-        // DRAW INTERNATIONAL (Canada/Mexico)
-        // We extract countries from the world atlas and filter for NA
+        // DRAW INTERNATIONAL (Using World Atlas countries)
         const countries = topojson.feature(world, world.objects.countries).features;
-        const naCountries = countries.filter(d => 
-            d.properties.name === "Canada" || d.properties.name === "Mexico"
-        );
+        const intl = countries.filter(d => d.properties.name === "Canada" || d.properties.name === "Mexico");
 
         g.append("g").selectAll("path")
-            .data(naCountries)
-            .join("path")
+            .data(intl).join("path")
             .attr("class", "state")
             .attr("d", path)
             .attr("fill", d => color(masterDataMap.get(d.properties.name) || 0))
@@ -171,11 +178,12 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
         const counties = topojson.feature(us, us.objects.counties).features;
 
         g.append("g").selectAll("path")
-            .data(states)
-            .join("path")
+            .data(states).join("path")
             .attr("class", "state state-us")
             .attr("d", path)
             .attr("fill", d => color(stateTotals.get(d.id) || 0))
+            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, stateTotals.get(d.id)))
+            .on("mouseout", hideTooltip)
             .on("click", (e, d) => {
                 const [[x0, y0], [x1, y1]] = path.bounds(d);
                 e.stopPropagation();
@@ -192,8 +200,7 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
             g.selectAll(".county").remove();
             const stateCounties = allCounties.filter(c => c.id.startsWith(stateFeature.id));
             g.append("g").selectAll("path")
-                .data(stateCounties)
-                .join("path")
+                .data(stateCounties).join("path")
                 .attr("class", "county state")
                 .attr("d", path)
                 .attr("fill", d => color(dataMap.get(d.id) || 0))
@@ -202,7 +209,6 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
         }
 
         svg.call(zoom);
-        drawLegend();
 
     } catch (e) { 
         document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Error: ${e.message}</span>`;
