@@ -12,7 +12,18 @@ jobs:
     permissions:
       contents: write # Explicitly required to push commits
 
-    steps:
+steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install pandas requests playwright beautifulsoup4
+          python -m playwright install chromium --with-deps
+      - name: Execute ETL script
+        run: python scripts/update_measles_data.py
       - name: Checkout repository
         uses: actions/checkout@v4
 
