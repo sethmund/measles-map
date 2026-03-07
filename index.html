@@ -160,8 +160,15 @@ Promise.all([
     g.append("g").selectAll("path")
         .data([...caFeatures, ...mxFeatures])
         .join("path").attr("class", "state").attr("d", path)
-        .attr("fill", d => color(nameMap.get(d.properties.name || d.properties.NOM_ENT) || 0))
-        .on("mouseover", (e, d) => showTooltip(e, d.properties.name || d.properties.NOM_ENT, nameMap.get(d.properties.name || d.properties.NOM_ENT)))
+        .attr("fill", d => {
+            // Target 'name' for Canada, 'state_name' for Mexico
+            const regionName = d.properties.name || d.properties.state_name;
+            return color(nameMap.get(regionName) || 0);
+        })
+        .on("mouseover", (e, d) => {
+            const regionName = d.properties.name || d.properties.state_name;
+            showTooltip(e, regionName, nameMap.get(regionName));
+        })
         .on("mouseout", () => tooltip.style("opacity", 0));
 
     // 3. DRAW US STATES (Includes Zoom Interaction)
