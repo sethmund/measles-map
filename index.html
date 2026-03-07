@@ -97,7 +97,7 @@
 <div class="tooltip"></div>
 
 <script>
-// --- CONFIGURATION ---
+// --- 1. GLOBAL INITIALIZATION ---
 const US_GEO = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 const DATA_URL = "measles_na_update.csv";
 
@@ -106,34 +106,54 @@ const svg = d3.select('body').append('svg').attr('viewBox', [0, 0, width, height
 const g = svg.append("g");
 const tooltip = d3.select(".tooltip");
 
-const color = d3.scaleThreshold().domain([1, 10, 50, 100, 500]).range(["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
-const projection = d3.geoConicEqualArea().parallels([15, 60]).rotate([100, 0]).center([0, 38]).scale(width * 0.5).translate([width / 2, height / 2]);
+const color = d3.scaleThreshold()
+    .domain([1, 10, 50, 100, 500])
+    .range(["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
+
+const projection = d3.geoConicEqualArea()
+    .parallels([15, 60]).rotate([100, 0]).center([0, 38])
+    .scale(width * 0.5).translate([width / 2, height / 2]);
+
 const path = d3.geoPath().projection(projection);
 
-// ZOOM BEHAVIOR
-const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", (e) => g.attr("transform", e.transform));
+// --- 2. ZOOM BEHAVIOR ---
+const zoom = d3.zoom()
+    .scaleExtent([1, 12])
+    .on("zoom", (event) => g.attr("transform", event.transform));
 
 const showTooltip = (event, name, val = 0) => {
-    tooltip.style("opacity", 1).html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
-        .style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px");
+    tooltip.style("opacity", 1)
+        .html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
+        .style("left", (event.pageX + 15) + "px")
+        .style("top", (event.pageY - 28) + "px");
 };
 
+// --- 3. MAIN DATA LOAD ---
 Promise.all([
-    d3.json("canada.json"), d3.json("mx.json"), d3.json(US_GEO), d3.csv(DATA_URL)
+    d3.json("canada.json"), 
+    d3.json("mx.json"),     
+    d3.json(US_GEO),        
+    d3.csv(DATA_URL)
 ]).then(([ca, mx, us, rawData]) => {
     
-    // 1. DATA MAPS
-    const nameMap = new Map(); // For State-level (SC/UT/Canada/Mexico)
-    const fipsMap = new Map(); // For US County-level
+    const nameMap = new Map(); // State/Province level lookup
+    const fipsMap = new Map(); // US County level lookup
+    let globalSum = 0;
+
     rawData.forEach(d => {
         const val = +d.Confirmed || 0;
+        globalSum += val;
         nameMap.set(d.Province_State, (nameMap.get(d.Province_State) || 0) + val);
         if (d.Country_Region === "US") fipsMap.set(d.ISO3166_2, val);
     });
 
-    // 2. DRAW INTERNATIONAL (Canada/Mexico)
-    const drawIntl = (data, obj, label) => {
-        g.append("g").selectAll("path").data(topojson.feature(data, data.objects[obj]).features)
+    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Connection Secure</span>";
+    document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
+
+    // 4. DRAW CANADA & MEXICO
+    const drawIntl = (data, objName) => {
+        g.append("g").selectAll("path")
+            .data(topojson.feature(data, data.objects[objName]).features)
             .join("path").attr("class", "state").attr("d", path)
             .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
@@ -142,46 +162,56 @@ Promise.all([
     drawIntl(ca, "ne_10m_admin_1_states_provinces");
     drawIntl(mx, "mexico");
 
-    // 3. DRAW US STATES
+    // 5. DRAW US STATES
     const states = topojson.feature(us, us.objects.states).features;
-    const counties = topojson.feature(us, us.objects.counties).features;
+    const allCounties = topojson.feature(us, us.objects.counties).features;
 
-    g.append("g").selectAll("path").data(states).join("path")
+    g.append("g").selectAll("path")
+        .data(states).join("path")
         .attr("class", "state").attr("d", path)
         .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
         .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
         .on("mouseout", () => tooltip.style("opacity", 0))
-        .on("click", (e, d) => {
-            e.stopPropagation();
+        .on("click", (event, d) => {
+            event.stopPropagation();
             const [[x0, y0], [x1, y1]] = path.bounds(d);
             svg.transition().duration(750).call(
                 zoom.transform,
-                d3.zoomIdentity.translate(width/2, height/2).scale(Math.min(8, 0.9 / Math.max((x1-x0)/width, (y1-y0)/height))).translate(-(x0+x1)/2, -(y0+y1)/2)
+                d3.zoomIdentity
+                    .translate(width / 2, height / 2)
+                    .scale(Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)))
+                    .translate(-(x0 + x1) / 2, -(y0 + y1) / 2)
             );
-            renderCounties(d, counties);
+            renderCounties(d, allCounties);
         });
 
-    function renderCounties(stateFeature, allCounties) {
+    // 6. COUNTY DRILL-DOWN LOGIC
+    function renderCounties(stateFeature, counties) {
         g.selectAll(".county-layer").remove();
-        const stateCounties = allCounties.filter(c => c.id.startsWith(stateFeature.id));
-        
+        const stateCounties = counties.filter(c => c.id.startsWith(stateFeature.id));
+
         g.append("g").attr("class", "county-layer").selectAll("path")
-            .data(stateCounties).join("path").attr("class", "state county")
+            .data(stateCounties).join("path")
+            .attr("class", "state county")
             .attr("d", path)
             .attr("fill", d => {
                 const countVal = fipsMap.get(d.id) || 0;
-                // FALLBACK: If county has 0 but state (SC/UT) has "Unassigned" cases, 
-                // we keep a base color so the state doesn't turn black on zoom.
+                // FALLBACK: If county specific data is 0 but state (SC/UT) has aggregate cases, 
+                // we keep a base color to show it is a hotspot zone.
                 return countVal > 0 ? color(countVal) : (nameMap.get(stateFeature.properties.name) > 0 ? "#2a0000" : "#1a1a1a");
             })
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, fipsMap.get(d.id)))
             .on("mouseout", () => tooltip.style("opacity", 0));
     }
 
+    // Reset Zoom on Background Click
     svg.call(zoom).on("click", () => {
         svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
         g.selectAll(".county-layer").remove();
     });
+
+}).catch(err => {
+    document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Error: ${err.message}</span>`;
 });
 </script>
 </body>
