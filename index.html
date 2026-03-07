@@ -97,7 +97,7 @@
 <div class="tooltip"></div>
 
 <script>
-// --- DATA CONFIGURATION ---
+// --- MAP & DATA CONFIGURATION ---
 const DATA_URL = "measles_na_update.csv";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 const NA_GEO_URL = "https://raw.githubusercontent.com/codeforgermany/click_dummy_poverty_map/master/src/data/topojson/north-america.json";
@@ -124,13 +124,14 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
     const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => g.attr("transform", e.transform));
 
     try {
+        // Parallel Load
         const [us, na, rawData] = await Promise.all([
             d3.json(ATLAS_URL),
             d3.json(NA_GEO_URL),
             d3.csv(DATA_URL)
         ]);
 
-        // 1. Map Pre-processing
+        // 1. Unified Data Lookup
         const masterDataMap = new Map();
         const stateTotals = new Map();
         let globalSum = 0;
@@ -140,7 +141,7 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
             globalSum += val;
             
             if (d.Country_Region === "US") {
-                const fips = d.ISO3166_2.padStart(5, "0");
+                const fips = (d.ISO3166_2 || "").toString().padStart(5, "0");
                 const stateFips = fips.substring(0, 2);
                 masterDataMap.set(fips, val);
                 stateTotals.set(stateFips, (stateTotals.get(stateFips) || 0) + val);
@@ -149,10 +150,11 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
             }
         });
 
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● System Live</span>";
+        // 2. UI Refresh
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
         document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-        // 2. Draw International Provinces (Canada/Mexico)
+        // 3. Draw Canada & Mexico (topojson na_states)
         g.append("g").selectAll("path")
             .data(topojson.feature(na, na.objects.na_states).features.filter(d => d.properties.country !== "USA"))
             .join("path")
@@ -162,14 +164,14 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, masterDataMap.get(d.properties.name)))
             .on("mouseout", hideTooltip);
 
-        // 3. Draw US States
+        // 4. Draw US States
         const states = topojson.feature(us, us.objects.states).features;
         const counties = topojson.feature(us, us.objects.counties).features;
 
         g.append("g").selectAll("path")
             .data(states)
             .join("path")
-            .attr("class", "state")
+            .attr("class", "state state-us")
             .attr("d", path)
             .attr("fill", d => color(stateTotals.get(d.id) || 0))
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, stateTotals.get(d.id)))
@@ -184,6 +186,7 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
                 renderCounties(d);
             });
 
+        // 5. County View
         function renderCounties(stateFeature) {
             g.selectAll(".county").remove();
             const stateCounties = counties.filter(c => c.id.startsWith(stateFeature.id));
@@ -204,7 +207,7 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
 
         drawLegend();
 
-    } catch (e) { document.getElementById("loading-msg").innerHTML = "❌ Error: " + e.message; }
+    } catch (e) { document.getElementById("loading-msg").textContent = "❌ Error: " + e.message; }
 
     function showTooltip(event, name, val = 0) {
         tooltip.style("opacity", 1)
