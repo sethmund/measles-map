@@ -128,7 +128,6 @@ const showTooltip = (event, name, val = 0) => {
         .style("top", (event.pageY - 28) + "px");
 };
 
-// --- 2. MAIN DATA LOAD ---
 Promise.all([
     d3.json("canada.json"), 
     d3.json("mx.json"),     
@@ -136,8 +135,8 @@ Promise.all([
     d3.csv(DATA_URL)
 ]).then(([ca, mx, us, rawData]) => {
     
-    const nameMap = new Map(); // State/Province lookup
-    const fipsMap = new Map(); // County lookup
+    const nameMap = new Map(); 
+    const fipsMap = new Map(); 
     let globalSum = 0;
 
     rawData.forEach(d => {
@@ -150,23 +149,25 @@ Promise.all([
     document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● North America Sync Complete</span>";
     document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-    // 3. DRAW CANADA (Layer: ne_10m_admin_1_states_provinces)
+    // 3. DRAW CANADA (Auto-detecting the layer name)
+    const caLayer = Object.keys(ca.objects)[0];
     g.append("g").selectAll("path")
-        .data(topojson.feature(ca, ca.objects.ne_10m_admin_1_states_provinces).features)
+        .data(topojson.feature(ca, ca.objects[caLayer]).features)
         .join("path").attr("class", "state").attr("d", path)
         .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
         .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
         .on("mouseout", () => tooltip.style("opacity", 0));
 
-    // 4. DRAW MEXICO (Layer: mexico)
+    // 4. DRAW MEXICO (Auto-detecting the layer name to prevent the crash)
+    const mxLayer = Object.keys(mx.objects)[0];
     g.append("g").selectAll("path")
-        .data(topojson.feature(mx, mx.objects.mexico).features)
+        .data(topojson.feature(mx, mx.objects[mxLayer]).features)
         .join("path").attr("class", "state").attr("d", path)
         .attr("fill", d => color(nameMap.get(d.properties.name) || 0))
         .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameMap.get(d.properties.name)))
         .on("mouseout", () => tooltip.style("opacity", 0));
 
-    // 5. DRAW US STATES (NAME-based join to fix SC/UT/VA gray-out)
+    // 5. DRAW US STATES
     const states = topojson.feature(us, us.objects.states).features;
     const counties = topojson.feature(us, us.objects.counties).features;
 
@@ -197,7 +198,6 @@ Promise.all([
             .attr("d", path)
             .attr("fill", d => {
                 const countVal = fipsMap.get(d.id) || 0;
-                // Fallback for states like SC/UT that have aggregate data but 00000 FIPS
                 return countVal > 0 ? color(countVal) : (nameMap.get(stateFeature.properties.name) > 0 ? "#2a0000" : "#1a1a1a");
             })
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, fipsMap.get(d.id)))
