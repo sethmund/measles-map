@@ -25,15 +25,16 @@ jobs:
           pip install pandas requests playwright beautifulsoup4
           python -m playwright install chromium --with-deps
 
-      - name: Process JHU US Data
+      - name: Step 1: Process JHU US Data
         run: python scripts/process_jhu_data.py
 
-      - name: Run North American ETL
+      - name: Step 2: Run North American ETL & Merge
         run: python scripts/update_measles_data.py
 
-      - name: Commit and push changes
+      - name: Step 3: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # Explicitly add both the intermediate and final files
           git add measles_na_update.csv jhu_us_summary.csv
           git diff --quiet && git diff --staged --quiet || (git commit -m "Automated data update: $(date -u +'%Y-%m-%d')" && git push)
