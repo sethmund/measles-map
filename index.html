@@ -144,6 +144,8 @@
 // --- CONFIGURATION ---
 const JHU_URL = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates_detailed.csv";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
+const INTL_DATA_URL = "measles_na_update.csv"; // Your ETL output
+const NA_GEO_URL = "https://raw.githubusercontent.com/codeforgermany/click_dummy_poverty_map/master/src/data/topojson/north-america.json";
 
 // COLOR CONFIGURATION
 const DOMAIN = [1, 10, 50, 100, 500];
@@ -155,250 +157,176 @@ const RANGE = ["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]
     const svg = d3.select('body').append('svg').attr('viewBox', [0, 0, width, height]);
     const tooltip = d3.select(".tooltip");
     
-    const projection = d3.geoAlbersUsa().fitWidth(width, {type: "Sphere"});
+    // Shifted to Conic Projection for North America coverage
+    const projection = d3.geoConicConic()
+        .parallels([15, 60])
+        .rotate([100, 0])
+        .center([0, 38])
+        .scale(width * 0.5) 
+        .translate([width / 2, height / 2]);
+
     const path = d3.geoPath().projection(projection);
     const zoom = d3.zoom().scaleExtent([1, 8]).on("zoom", e => g.attr("transform", e.transform));
     const g = svg.append("g");
 
     // DATA STORAGE
     let fullRawData = [];
+    let intlRawData = [];
     let usTopology = null;
+    let naTopology = null;
     let nameToFips = new Map();
 
     try {
-        const [us, rawData] = await Promise.all([
+        const [us, na, rawData, intlData] = await Promise.all([
             d3.json(ATLAS_URL),
-            d3.csv(JHU_URL)
+            d3.json(NA_GEO_URL),
+            d3.csv(JHU_URL),
+            d3.csv(INTL_DATA_URL)
         ]);
 
         fullRawData = rawData;
+        intlRawData = intlData;
         usTopology = us;
+        naTopology = na;
         
-        // Build State Lookup
         const states = topojson.feature(us, us.objects.states).features;
         const counties = topojson.feature(us, us.objects.counties).features;
         
-        states.forEach(s => {
-            nameToFips.set(s.properties.name, s.id);
-        });
+        states.forEach(s => nameToFips.set(s.properties.name, s.id));
 
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● System Active</span>";
+        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● North America Active</span>";
 
-        // --- SETUP DATE DROPDOWN ---
+        // Setup Date Dropdown (US Data only)
         const dates = new Set();
-        fullRawData.forEach(d => {
-            if (d.date && d.date.startsWith("2026")) {
-                dates.add(d.date);
-            }
-        });
-        
+        fullRawData.forEach(d => { if (d.date && d.date.startsWith("2026")) dates.add(d.date); });
         const sortedDates = Array.from(dates).sort().reverse();
         const selector = d3.select("#date-selector");
+        sortedDates.forEach(date => selector.append("option").attr("value", date).text(date));
 
-        sortedDates.forEach(date => {
-            selector.append("option").attr("value", date).text(date);
-        });
+        selector.on("change", function() { updateMap(this.value); });
 
-        selector.on("change", function() {
-            updateMap(this.value);
-        });
-
-        // --- INITIAL RENDER ---
-        updateMap("all");
-
-        // 2. COLOR SCALE
         const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
         drawLegend(color);
 
-        // --- MAP UPDATE FUNCTION ---
+        // INITIAL RENDER
+        updateMap("all");
+
         function updateMap(selectedDate) {
             const countyData = new Map();
             const stateData = new Map();
+            const intlDataMap = new Map(intlRawData.map(d => [d.Province_State, +d.Confirmed]));
             
-            states.forEach(s => {
-                stateData.set(s.id, { total: 0, unassigned: 0 });
-            });
+            states.forEach(s => stateData.set(s.id, { total: 0, unassigned: 0 }));
 
             let globalTotal = 0;
 
+            // Process US Data
             fullRawData.forEach(d => {
-                // Filters
                 if (d.outcome_type !== 'case_lab-confirmed') return;
                 if (!d.date || !d.date.startsWith("2026")) return;
                 if (selectedDate !== "all" && d.date !== selectedDate) return;
 
                 const val = +d.value || 0;
-                if (val === 0) return;
-
-                // Geocoding
-                let fips = (d.location_id || d.fips || "").toString();
-                const rawName = d.location_name || ""; 
-                let assignedStateFips = null;
-                let isCountyMapable = false;
-
-                if (fips && fips !== "0" && fips.length >= 4) {
-                    fips = fips.padStart(5, "0"); 
-                    assignedStateFips = fips.substring(0, 2); 
-                    countyData.set(fips, (countyData.get(fips) || 0) + val);
-                    isCountyMapable = true;
-                } else {
-                    const parts = rawName.split(",");
-                    const stateName = parts[parts.length - 1].trim(); 
-                    assignedStateFips = nameToFips.get(stateName);
-                }
-
-                if (assignedStateFips && stateData.has(assignedStateFips)) {
-                    const stats = stateData.get(assignedStateFips);
+                let fips = (d.location_id || "").toString().padStart(5, "0");
+                let stateFips = fips.substring(0, 2);
+                
+                if (stateData.has(stateFips)) {
+                    const stats = stateData.get(stateFips);
                     stats.total += val;
-                    if (!isCountyMapable) stats.unassigned += val;
+                    if (fips.endsWith("000")) stats.unassigned += val;
+                    else countyData.set(fips, (countyData.get(fips) || 0) + val);
                     globalTotal += val;
                 }
             });
 
-            // Update UI Stats
-            const label = selectedDate === "all" ? "Total Cases" : `${selectedDate}`;
+            // Process Intl Data (YTD)
+            const intlTotal = d3.sum(intlRawData, d => +d.Confirmed);
+            globalTotal += intlTotal;
+
+            const label = selectedDate === "all" ? "Total NA Cases" : `US ${selectedDate} + Intl YTD`;
             document.getElementById("data-stats").innerHTML = `${label}: <span class="highlight">${globalTotal.toLocaleString()}</span>`;
 
-            // Draw/Update Map
-            const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
+            // Draw Canada/Mexico Provinces
+            const intlFeatures = topojson.feature(naTopology, naTopology.objects.na_states).features
+                .filter(d => d.properties.country !== "USA");
 
-            g.selectAll(".state")
+            g.selectAll(".intl-province")
+                .data(intlFeatures)
+                .join("path")
+                .attr("class", "state intl-province")
+                .attr("d", path)
+                .transition().duration(500)
+                .attr("fill", d => {
+                    const cases = intlDataMap.get(d.properties.name);
+                    return cases ? color(cases) : "#151515";
+                });
+
+            g.selectAll(".intl-province")
+                .on("mouseover", (event, d) => {
+                    const cases = intlDataMap.get(d.properties.name) || 0;
+                    showTooltip(event, d.properties.name, `<strong>${cases} Cases (2026 YTD)</strong>`);
+                })
+                .on("mouseout", hideTooltip);
+
+            // Draw US States
+            g.selectAll(".state-us")
                 .data(states)
                 .join("path")
-                .attr("class", "state")
+                .attr("class", "state state-us")
                 .attr("d", path)
                 .on("click", clicked)
                 .transition().duration(500)
                 .attr("fill", d => {
-                    const stats = stateData.get(d.id);
-                    return (stats && stats.total > 0) ? color(stats.total) : "#151515";
+                    const total = stateData.get(d.id)?.total || 0;
+                    return total > 0 ? color(total) : "#151515";
                 });
 
-            // Re-attach listeners for tooltips
-            g.selectAll(".state")
+            g.selectAll(".state-us")
                 .on("mouseover", (event, d) => {
-                    const stats = stateData.get(d.id);
-                    const total = stats ? stats.total : 0;
-                    if (total === 0) {
-                         showTooltip(event, d.properties.name, `<span class="sub-text">No cases</span>`);
-                    } else {
-                        const unassigned = stats.unassigned;
-                        const mapped = total - unassigned;
-                        showTooltip(event, d.properties.name, 
-                            `<strong>${total} Cases</strong><br>
-                             <span class="sub-text">Mapped: ${mapped} | Unassigned: ${unassigned}</span>`
-                        );
-                    }
+                    const s = stateData.get(d.id);
+                    showTooltip(event, d.properties.name, `<strong>${s?.total || 0} Cases</strong>`);
                 })
                 .on("mouseout", hideTooltip);
 
-            // Draw State Borders
-            g.selectAll(".state-border").remove();
-            g.append("path")
-                .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
-                .attr("class", "state-border")
-                .attr("fill", "none")
-                .attr("stroke", "#333")
-                .attr("stroke-width", 0.8)
-                .attr("d", path)
-                .style("pointer-events", "none");
-            
-            // Expose renderCounties to global scope for click handler
             window.renderCounties = function(stateFeature) {
                 g.selectAll(".county").remove();
-                const stateFips = stateFeature.id;
-                const stateCounties = counties.filter(c => c.id.startsWith(stateFips));
-                g.append("g") 
-                    .selectAll("path")
-                    .data(stateCounties)
-                    .join("path")
-                    .attr("class", "county")
-                    .attr("d", path)
-                    .attr("fill", d => {
-                        const val = countyData.get(d.id) || 0;
-                        return val > 0 ? color(val) : "#151515";
-                    })
-                    .on("mouseover", (event, d) => {
-                        const val = countyData.get(d.id) || 0;
-                        showTooltip(event, d.properties.name, `Confirmed: <strong>${val}</strong>`);
-                    })
-                    .on("mouseout", hideTooltip)
-                    .style("opacity", 0)
-                    .transition().duration(500)
-                    .style("opacity", 1);
+                const stateCounties = counties.filter(c => c.id.startsWith(stateFeature.id));
+                g.append("g").selectAll("path").data(stateCounties).join("path")
+                    .attr("class", "county").attr("d", path)
+                    .attr("fill", d => color(countyData.get(d.id) || 0))
+                    .on("mouseover", (event, d) => showTooltip(event, d.properties.name, `Confirmed: ${countyData.get(d.id) || 0}`))
+                    .on("mouseout", hideTooltip).style("opacity", 0).transition().style("opacity", 1);
             };
         }
 
-        // --- INTERACTION HELPER ---
         function clicked(event, d) {
             const [[x0, y0], [x1, y1]] = path.bounds(d);
-            event.stopPropagation();
-            const w = x1 - x0, h = y1 - y0;
-            const k = Math.min(8, 0.9 / Math.max(w / width, h / height));
-            const tx = width / 2 - (x0 + x1) / 2 * k;
-            const ty = height / 2 - (y0 + y1) / 2 * k;
-            svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
-            
+            const k = Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height));
+            svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.translate(width/2 - (x0+x1)/2*k, height/2 - (y0+y1)/2*k).scale(k));
             if(window.renderCounties) window.renderCounties(d);
         }
 
-        svg.call(zoom);
-        svg.on("click", () => {
+        svg.call(zoom).on("click", () => {
             svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-            g.selectAll(".county").transition().style("opacity", 0).remove();
+            g.selectAll(".county").remove();
         });
 
-    } catch (e) {
-        console.error(e);
-        document.getElementById("loading-msg").textContent = "❌ Error: " + e.message;
-    }
-    
+    } catch (e) { document.getElementById("loading-msg").textContent = "❌ Error: " + e.message; }
+
     function drawLegend(colorScale) {
-        const legendW = 200;
-        const legendH = 12;
-        const legendSvg = d3.select("#legend-container").append("svg")
-            .attr("width", legendW + 20)
-            .attr("height", 40);
-        const legendData = [];
-        for(let i=0; i<RANGE.length; i++) {
-            let label = "";
-            if (i === 0) label = "0";
-            else if (i === RANGE.length - 1) label = `${DOMAIN[i-1]}+`;
-            else label = `${DOMAIN[i-1]}-${DOMAIN[i]-1}`;
-            legendData.push({ color: RANGE[i], label: label });
-        }
-        const blockW = legendW / legendData.length;
-        const grp = legendSvg.append("g");
-        grp.selectAll("rect")
-            .data(legendData)
-            .join("rect")
-            .attr("x", (d, i) => i * blockW)
-            .attr("y", 0)
-            .attr("width", blockW)
-            .attr("height", legendH)
-            .attr("fill", d => d.color)
-            .attr("stroke", "#333");
-        grp.selectAll("text")
-            .data(legendData)
-            .join("text")
-            .attr("x", (d, i) => i * blockW + blockW/2)
-            .attr("y", legendH + 15)
-            .attr("text-anchor", "middle")
-            .style("font-size", "10px")
-            .style("fill", "#aaa")
-            .text(d => d.label);
-        legendSvg.append("text").attr("x", 0).attr("y", -5).text("Cases").style("fill", "#888").style("font-size", "10px");
+        const legendSvg = d3.select("#legend-container").append("svg").attr("width", 220).attr("height", 40);
+        const legendData = DOMAIN.map((d, i) => ({ color: RANGE[i+1], label: d }));
+        legendSvg.append("g").selectAll("rect").data(legendData).join("rect")
+            .attr("x", (d, i) => i * 40).attr("width", 40).attr("height", 12).attr("fill", d => d.color).attr("stroke", "#333");
+        legendSvg.append("g").selectAll("text").data(legendData).join("text")
+            .attr("x", (d, i) => i * 40).attr("y", 25).style("font-size", "10px").style("fill", "#aaa").text(d => d.label);
     }
 
-    function showTooltip(event, title, htmlContent) {
-        tooltip.style("opacity", 1)
-            .html(`<div style="font-size:14px; margin-bottom:4px; color:#ddd">${title}</div>${htmlContent}`)
-            .style("left", event.pageX + "px")
-            .style("top", event.pageY + "px");
+    function showTooltip(event, title, content) {
+        tooltip.style("opacity", 1).html(`<div style="color:#ddd">${title}</div>${content}`)
+            .style("left", event.pageX + "px").style("top", event.pageY + "px");
     }
-
     function hideTooltip() { tooltip.style("opacity", 0); }
-
 })();
 </script>
 </body>
