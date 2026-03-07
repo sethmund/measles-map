@@ -8,46 +8,50 @@ from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
 
 def fetch_us_data():
-    """Aggregates JHU US daily data into a 2026 YTD summary."""
-    jhu_url = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_daily_cases_by_county.csv"
+    """Aggregates JHU US daily data into a 2026 YTD summary with strict typing."""
+    # Using the exact URL from your screenshot
+    jhu_url = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates.csv"
     try:
-        # Load JHU data
-        df = pd.read_csv(jhu_url)
+        # Force location_id to string to prevent float conversion (e.g., 8001.0)
+        df = pd.read_csv(jhu_url, dtype={'location_id': str})
         
-        # Ensure date is string and filter for 2026
-        df['date'] = df['date'].astype(str)
-        df_2026 = df[df['date'].str.startswith('2026')].copy()
+        # 1. Clean Dates: Ensure we catch everything starting with '2026'
+        df['date'] = df['date'].astype(str).str.strip()
+        df_2026 = df[df['date'].str.contains('^2026', regex=True)].copy()
         
-        # JHU uses 'outcome_type' to distinguish between confirmed/suspected
-        # We target 'case_lab-confirmed' for the 2026 map
+        # 2. Filter for Confirmed Cases
         df_2026 = df_2026[df_2026['outcome_type'] == 'case_lab-confirmed']
         
         if df_2026.empty:
-            print("Warning: No US 2026 records found. Check JHU date format.")
+            print("US Sync Error: No 2026 data found after filtering.")
             return pd.DataFrame()
 
-        # Group by location_id (FIPS) to get the YTD sum
+        # 3. Aggregate by FIPS
         us_agg = df_2026.groupby(['location_id', 'location_name']).agg({'value': 'sum'}).reset_index()
         
-        # Standardize Columns to match CA/MX schema
+        # 4. Standardize Columns for the Master CSV
         us_agg = us_agg.rename(columns={
             'location_id': 'ISO3166_2',
             'location_name': 'Combined_Key',
             'value': 'Confirmed'
         })
         
-        # Ensure FIPS is a 5-digit string (e.g., '01001')
-        us_agg['ISO3166_2'] = us_agg['ISO3166_2'].astype(str).str.replace('.0', '', regex=False).str.zfill(5)
+        # Fix FIPS: pad to 5 digits (e.g., '8001' -> '08001')
+        us_agg['ISO3166_2'] = us_agg['ISO3166_2'].str.split('.').str[0].str.zfill(5)
         
-        # Extract Province_State from "County, State" format
+        # Extract State from "County, State"
         us_agg['Province_State'] = us_agg['Combined_Key'].str.split(',').str[-1].str.strip()
         us_agg['Country_Region'] = 'US'
         us_agg['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        return us_agg[['Province_State', 'Country_Region', 'Last_Update', 'Confirmed', 'Combined_Key', 'ISO3166_2']]
+        # Fill required D3 columns to avoid 'undefined' errors
+        for col in ['Deaths', 'Recovered', 'Active']:
+            us_agg[col] = 0
+            
+        return us_agg
     
     except Exception as e:
-        print(f"US Data Error: {e}")
+        print(f"US Sync Critical Error: {e}")
         return pd.DataFrame()
 
 def fetch_canada_data():
