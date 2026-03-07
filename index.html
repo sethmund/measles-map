@@ -154,8 +154,6 @@ Promise.all([
     const usStates = topojson.feature(na, na.objects.states).features;
     const usCounties = topojson.feature(na, na.objects.counties).features;
 
-    [Image of a D3.js data join workflow showing GeoJSON properties being mapped to CSV data values]
-
     // 2. DRAW INTERNATIONAL (Canada & Mexico)
     g.append("g").selectAll("path")
         .data([...caFeatures, ...mxFeatures])
