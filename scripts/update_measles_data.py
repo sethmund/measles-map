@@ -1,9 +1,8 @@
 import pandas as pd
 import requests
-from datetime import datetime
 import io
 import zipfile
-from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 
 def fetch_canada_data():
     """Scrapes weekly provincial measles data from PHAC Health Infobase."""
@@ -18,7 +17,6 @@ def fetch_canada_data():
         })
         df = df[df['Province_State'] != 'Canada'].copy()
         
-        # Coordinate and ISO mapping for Canada
         canada_meta = {
             'Alberta': {'ISO': 'CA-AB', 'Lat': 53.9333, 'Long': -116.5765},
             'British Columbia': {'ISO': 'CA-BC', 'Lat': 53.7267, 'Long': -127.6476},
@@ -54,49 +52,42 @@ def fetch_canada_data():
         return pd.DataFrame()
 
 def fetch_mexico_data():
-    """Retrieves and aggregates case data from Mexico's DGE Open Data portal."""
-    portal_url = "https://www.gob.mx/salud/documentos/datos-abiertos-direccion-general-de-epidemiologia"
+    """Retrieves case data via reverse-chronological URL iteration."""
+    base_url = "https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/efe/historicos/2026/datos_abiertos_efe_{}.zip"
     
-    try:
-        # 1. Parse DGE portal to find dynamic zip URL
-        response = requests.get(portal_url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'lxml')
+    current_date = datetime.now()
+    max_lookback_days = 30
+    zip_url = None
+    
+    for i in range(max_lookback_days):
+        test_date = current_date - timedelta(days=i)
+        date_str = test_date.strftime("%d%m%y")
+        test_url = base_url.format(date_str)
         
-        # Look for the link containing the exanthematic disease dataset
-        zip_url = None
-        for a in soup.find_all('a', href=True):
-            if 'exantematica' in a['href'].lower() and a['href'].endswith('.zip'):
-                zip_url = a['href']
+        try:
+            response = requests.head(test_url, timeout=10)
+            if response.status_code == 200:
+                zip_url = test_url
                 break
-                
-        if not zip_url:
-            raise ValueError("Target ZIP file URL not found on DGE portal.")
+        except requests.RequestException:
+            continue
             
-        # Ensure URL is absolute
-        if zip_url.startswith('/'):
-            zip_url = "https://www.gob.mx" + zip_url
-            
-        # 2. Download and extract in memory
+    if not zip_url:
+        print(f"Error: No valid DGE dataset found within the last {max_lookback_days} days.")
+        return pd.DataFrame()
+
+    try:
         r = requests.get(zip_url)
         r.raise_for_status()
+        
         with zipfile.ZipFile(io.BytesIO(r.content)) as z:
             csv_filename = [name for name in z.namelist() if name.endswith('.csv')][0]
             with z.open(csv_filename) as f:
-                # DGE datasets use ISO-8859-1 encoding
                 df = pd.read_csv(f, encoding='ISO-8859-1')
                 
-        # 3. Filter for confirmed measles cases
-        # Classification code/string varies; typically 1 or 'CONFIRMADO SARAMPIÓN'
-        # Adjust 'CLASIFICACION_FINAL' logic based on the specific data dictionary if needed.
-        if 'CLASIFICACION_FINAL' in df.columns:
-             confirmed = df[df['CLASIFICACION_FINAL'].astype(str).str.contains('SARAMPIÓN|1', na=False, case=False)]
-        else:
-             confirmed = df # Fallback if filtering logic needs adjustment post-inspection
-             
+        confirmed = df[df['DIAGNOSTICO'] == 1]
         state_counts = confirmed.groupby('ENTIDAD_RES').size().reset_index(name='Confirmed')
         
-        # 4. Meta mapping for Mexico Entities (1-32)
         mexico_meta = {
             1: {'State': 'Aguascalientes', 'ISO': 'MX-AGU', 'Lat': 21.8853, 'Long': -102.2916},
             2: {'State': 'Baja California', 'ISO': 'MX-BCN', 'Lat': 30.8406, 'Long': -115.2838},
@@ -132,7 +123,6 @@ def fetch_mexico_data():
             32: {'State': 'Zacatecas', 'ISO': 'MX-ZAC', 'Lat': 22.7709, 'Long': -102.5832}
         }
         
-        # Standardize formatting for JHU schema
         state_counts['Province_State'] = state_counts['ENTIDAD_RES'].map(lambda x: mexico_meta.get(x, {}).get('State', 'Unknown'))
         state_counts['ISO3166_2'] = state_counts['ENTIDAD_RES'].map(lambda x: mexico_meta.get(x, {}).get('ISO', ''))
         state_counts['Lat'] = state_counts['ENTIDAD_RES'].map(lambda x: mexico_meta.get(x, {}).get('Lat', ''))
@@ -156,13 +146,15 @@ def main():
     df_canada = fetch_canada_data()
     df_mexico = fetch_mexico_data()
     
-    # Combine datasets
     master_df = pd.concat([df_canada, df_mexico], ignore_index=True)
     
-    # Export for D3 rendering. Ensure this matches the target directory in your YAML file.
-    output_filename = "measles_na_update.csv" 
-    master_df.to_csv(output_filename, index=False)
-    print(f"Data successfully written to {output_filename}")
+    # Prevent overwriting with an empty file if both network requests fail
+    if not master_df.empty:
+        output_filename = "measles_na_update.csv" 
+        master_df.to_csv(output_filename, index=False)
+        print(f"Data successfully written to {output_filename}")
+    else:
+        print("Both data sources failed to return valid data. No output generated.")
 
 if __name__ == "__main__":
     main()
