@@ -113,7 +113,7 @@ const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
     const g = svg.append("g");
     const tooltip = d3.select(".tooltip");
 
-    const projection = d3.geoConicConic()
+    const projection = d3.geoConicEqualArea()
         .parallels([15, 60])
         .rotate([100, 0])
         .center([0, 38])
