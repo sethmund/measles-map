@@ -8,50 +8,26 @@ from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
 
 def fetch_us_data():
-    """Aggregates JHU US daily data into a 2026 YTD summary with strict typing."""
-    # Using the exact URL from your screenshot
+    """Fallback aggregator if jhu_us_summary.csv is missing."""
     jhu_url = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_county_all_updates.csv"
     try:
-        # Force location_id to string to prevent float conversion (e.g., 8001.0)
         df = pd.read_csv(jhu_url, dtype={'location_id': str})
-        
-        # 1. Clean Dates: Ensure we catch everything starting with '2026'
         df['date'] = df['date'].astype(str).str.strip()
         df_2026 = df[df['date'].str.contains('^2026', regex=True)].copy()
-        
-        # 2. Filter for Confirmed Cases
         df_2026 = df_2026[df_2026['outcome_type'] == 'case_lab-confirmed']
         
-        if df_2026.empty:
-            print("US Sync Error: No 2026 data found after filtering.")
-            return pd.DataFrame()
+        if df_2026.empty: return pd.DataFrame()
 
-        # 3. Aggregate by FIPS
         us_agg = df_2026.groupby(['location_id', 'location_name']).agg({'value': 'sum'}).reset_index()
-        
-        # 4. Standardize Columns for the Master CSV
-        us_agg = us_agg.rename(columns={
-            'location_id': 'ISO3166_2',
-            'location_name': 'Combined_Key',
-            'value': 'Confirmed'
-        })
-        
-        # Fix FIPS: pad to 5 digits (e.g., '8001' -> '08001')
+        us_agg = us_agg.rename(columns={'location_id': 'ISO3166_2', 'location_name': 'Combined_Key', 'value': 'Confirmed'})
         us_agg['ISO3166_2'] = us_agg['ISO3166_2'].str.split('.').str[0].str.zfill(5)
-        
-        # Extract State from "County, State"
         us_agg['Province_State'] = us_agg['Combined_Key'].str.split(',').str[-1].str.strip()
         us_agg['Country_Region'] = 'US'
         us_agg['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Fill required D3 columns to avoid 'undefined' errors
-        for col in ['Deaths', 'Recovered', 'Active']:
-            us_agg[col] = 0
-            
+        for col in ['Deaths', 'Recovered', 'Active']: us_agg[col] = 0
         return us_agg
-    
     except Exception as e:
-        print(f"US Sync Critical Error: {e}")
+        print(f"US Fallback Error: {e}")
         return pd.DataFrame()
 
 def fetch_canada_data():
@@ -183,14 +159,25 @@ def fetch_mexico_data():
     return pd.DataFrame()
 
 def main():
+    print("Starting North American Master Merge...")
     df_can = fetch_canada_data()
     df_mex = fetch_mexico_data()
-    df_usa = fetch_us_data()
     
-    # Combine into a single Master CSV
+    # Load the verified JHU data you just generated
+    try:
+        df_usa = pd.read_csv("jhu_us_summary.csv", dtype={'ISO3166_2': str})
+        print(f"Loaded {len(df_usa)} US records from jhu_us_summary.csv")
+    except FileNotFoundError:
+        print("Warning: jhu_us_summary.csv not found. Running US fetcher...")
+        df_usa = fetch_us_data()
+
+    # Final Concatenation
     master_df = pd.concat([df_can, df_mex, df_usa], ignore_index=True)
     
     if not master_df.empty:
-        # Use a single consistent filename for the D3 map
+        # Ensure FIPS leading zeros are preserved in the final output
+        if 'ISO3166_2' in master_df.columns:
+            master_df['ISO3166_2'] = master_df['ISO3166_2'].astype(str).str.zfill(5)
+            
         master_df.to_csv("measles_na_update.csv", index=False)
-        print("North American Master CSV updated.")
+        print("Success: measles_na_update.csv is now complete with US data.")
