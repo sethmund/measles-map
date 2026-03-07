@@ -1,30 +1,43 @@
-Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key,ISO3166_2
-Aguascalientes,Mexico,2026-03-07 16:57:13,21.8853,-102.2916,7,0,0,7,"Aguascalientes, Mexico",MX-AGU
-Baja California,Mexico,2026-03-07 16:57:13,30.8406,-115.2838,17,0,0,17,"Baja California, Mexico",MX-BCN
-Baja California Sur,Mexico,2026-03-07 16:57:13,26.0444,-111.6661,2,0,0,2,"Baja California Sur, Mexico",MX-BCS
-Coahuila,Mexico,2026-03-07 16:57:13,27.0587,-101.7068,4,0,0,4,"Coahuila, Mexico",MX-COA
-Colima,Mexico,2026-03-07 16:57:13,19.1223,-104.0028,69,0,0,69,"Colima, Mexico",MX-COL
-Chiapas,Mexico,2026-03-07 16:57:13,16.7569,-93.1292,395,0,0,395,"Chiapas, Mexico",MX-CHP
-Chihuahua,Mexico,2026-03-07 16:57:13,28.633,-106.0691,18,0,0,18,"Chihuahua, Mexico",MX-CHH
-Ciudad de Mexico,Mexico,2026-03-07 16:57:13,19.4326,-99.1332,257,0,0,257,"Ciudad de Mexico, Mexico",MX-CMX
-Durango,Mexico,2026-03-07 16:57:13,24.0277,-104.6532,76,0,0,76,"Durango, Mexico",MX-DUR
-Guanajuato,Mexico,2026-03-07 16:57:13,21.019,-101.2574,5,0,0,5,"Guanajuato, Mexico",MX-GUA
-Guerrero,Mexico,2026-03-07 16:57:13,17.5809,-99.8237,61,0,0,61,"Guerrero, Mexico",MX-GRO
-Hidalgo,Mexico,2026-03-07 16:57:13,20.0911,-98.7624,8,0,0,8,"Hidalgo, Mexico",MX-HID
-Jalisco,Mexico,2026-03-07 16:57:13,20.6595,-103.349,2663,0,0,2663,"Jalisco, Mexico",MX-JAL
-Mexico,Mexico,2026-03-07 16:57:13,19.3202,-99.5694,174,0,0,174,"Mexico, Mexico",MX-MEX
-Michoacan,Mexico,2026-03-07 16:57:13,19.5665,-101.7068,99,0,0,99,"Michoacan, Mexico",MX-MIC
-Morelos,Mexico,2026-03-07 16:57:13,18.6813,-99.1013,9,0,0,9,"Morelos, Mexico",MX-MOR
-Nayarit,Mexico,2026-03-07 16:57:13,21.7514,-104.8455,31,0,0,31,"Nayarit, Mexico",MX-NAY
-Nuevo Leon,Mexico,2026-03-07 16:57:13,25.5922,-99.9962,32,0,0,32,"Nuevo Leon, Mexico",MX-NLE
-Oaxaca,Mexico,2026-03-07 16:57:13,17.0732,-96.7266,13,0,0,13,"Oaxaca, Mexico",MX-OAX
-Puebla,Mexico,2026-03-07 16:57:13,19.0414,-98.2063,102,0,0,102,"Puebla, Mexico",MX-PUE
-Queretaro,Mexico,2026-03-07 16:57:13,20.5888,-100.3899,15,0,0,15,"Queretaro, Mexico",MX-QUE
-Quintana Roo,Mexico,2026-03-07 16:57:13,19.1817,-88.4791,41,0,0,41,"Quintana Roo, Mexico",MX-ROO
-San Luis Potosi,Mexico,2026-03-07 16:57:13,22.1565,-100.9855,4,0,0,4,"San Luis Potosi, Mexico",MX-SLP
-Sinaloa,Mexico,2026-03-07 16:57:13,25.1721,-107.4795,186,0,0,186,"Sinaloa, Mexico",MX-SIN
-Sonora,Mexico,2026-03-07 16:57:13,29.2972,-110.3309,80,0,0,80,"Sonora, Mexico",MX-SON
-Tabasco,Mexico,2026-03-07 16:57:13,17.8409,-92.618,53,0,0,53,"Tabasco, Mexico",MX-TAB
-Tlaxcala,Mexico,2026-03-07 16:57:13,19.3182,-98.2375,31,0,0,31,"Tlaxcala, Mexico",MX-TLA
-Veracruz,Mexico,2026-03-07 16:57:13,19.1738,-96.1342,36,0,0,36,"Veracruz, Mexico",MX-VER
-Yucatan,Mexico,2026-03-07 16:57:13,20.7099,-89.0943,10,0,0,10,"Yucatan, Mexico",MX-YUC
+Province_State,Confirmed,Country_Region,Last_Update,Lat,Long_,Deaths,Recovered,Active,Combined_Key,ISO3166_2
+Manitoba,228,,,,,,,,,
+Alberta,72,,,,,,,,,
+Ontario,4,,,,,,,,,
+British Columbia,17,,,,,,,,,
+Nova Scotia,10,,,,,,,,,
+Saskatchewan,5,,,,,,,,,
+Quebec,3,,,,,,,,,
+New Brunswick,0,,,,,,,,,
+Newfoundland and Labrador,0,,,,,,,,,
+Northwest Territories,0,,,,,,,,,
+Nunavut,0,,,,,,,,,
+Prince Edward Island,0,,,,,,,,,
+Yukon,0,,,,,,,,,
+Aguascalientes,7,Mexico,2026-03-07 17:15:21,21.8853,-102.2916,0.0,0.0,7.0,"Aguascalientes, Mexico",MX-AGU
+Baja California,17,Mexico,2026-03-07 17:15:21,30.8406,-115.2838,0.0,0.0,17.0,"Baja California, Mexico",MX-BCN
+Baja California Sur,2,Mexico,2026-03-07 17:15:21,26.0444,-111.6661,0.0,0.0,2.0,"Baja California Sur, Mexico",MX-BCS
+Coahuila,4,Mexico,2026-03-07 17:15:21,27.0587,-101.7068,0.0,0.0,4.0,"Coahuila, Mexico",MX-COA
+Colima,69,Mexico,2026-03-07 17:15:21,19.1223,-104.0028,0.0,0.0,69.0,"Colima, Mexico",MX-COL
+Chiapas,395,Mexico,2026-03-07 17:15:21,16.7569,-93.1292,0.0,0.0,395.0,"Chiapas, Mexico",MX-CHP
+Chihuahua,18,Mexico,2026-03-07 17:15:21,28.633,-106.0691,0.0,0.0,18.0,"Chihuahua, Mexico",MX-CHH
+Ciudad de Mexico,257,Mexico,2026-03-07 17:15:21,19.4326,-99.1332,0.0,0.0,257.0,"Ciudad de Mexico, Mexico",MX-CMX
+Durango,76,Mexico,2026-03-07 17:15:21,24.0277,-104.6532,0.0,0.0,76.0,"Durango, Mexico",MX-DUR
+Guanajuato,5,Mexico,2026-03-07 17:15:21,21.019,-101.2574,0.0,0.0,5.0,"Guanajuato, Mexico",MX-GUA
+Guerrero,61,Mexico,2026-03-07 17:15:21,17.5809,-99.8237,0.0,0.0,61.0,"Guerrero, Mexico",MX-GRO
+Hidalgo,8,Mexico,2026-03-07 17:15:21,20.0911,-98.7624,0.0,0.0,8.0,"Hidalgo, Mexico",MX-HID
+Jalisco,2663,Mexico,2026-03-07 17:15:21,20.6595,-103.349,0.0,0.0,2663.0,"Jalisco, Mexico",MX-JAL
+Mexico,174,Mexico,2026-03-07 17:15:21,19.3202,-99.5694,0.0,0.0,174.0,"Mexico, Mexico",MX-MEX
+Michoacan,99,Mexico,2026-03-07 17:15:21,19.5665,-101.7068,0.0,0.0,99.0,"Michoacan, Mexico",MX-MIC
+Morelos,9,Mexico,2026-03-07 17:15:21,18.6813,-99.1013,0.0,0.0,9.0,"Morelos, Mexico",MX-MOR
+Nayarit,31,Mexico,2026-03-07 17:15:21,21.7514,-104.8455,0.0,0.0,31.0,"Nayarit, Mexico",MX-NAY
+Nuevo Leon,32,Mexico,2026-03-07 17:15:21,25.5922,-99.9962,0.0,0.0,32.0,"Nuevo Leon, Mexico",MX-NLE
+Oaxaca,13,Mexico,2026-03-07 17:15:21,17.0732,-96.7266,0.0,0.0,13.0,"Oaxaca, Mexico",MX-OAX
+Puebla,102,Mexico,2026-03-07 17:15:21,19.0414,-98.2063,0.0,0.0,102.0,"Puebla, Mexico",MX-PUE
+Queretaro,15,Mexico,2026-03-07 17:15:21,20.5888,-100.3899,0.0,0.0,15.0,"Queretaro, Mexico",MX-QUE
+Quintana Roo,41,Mexico,2026-03-07 17:15:21,19.1817,-88.4791,0.0,0.0,41.0,"Quintana Roo, Mexico",MX-ROO
+San Luis Potosi,4,Mexico,2026-03-07 17:15:21,22.1565,-100.9855,0.0,0.0,4.0,"San Luis Potosi, Mexico",MX-SLP
+Sinaloa,186,Mexico,2026-03-07 17:15:21,25.1721,-107.4795,0.0,0.0,186.0,"Sinaloa, Mexico",MX-SIN
+Sonora,80,Mexico,2026-03-07 17:15:21,29.2972,-110.3309,0.0,0.0,80.0,"Sonora, Mexico",MX-SON
+Tabasco,53,Mexico,2026-03-07 17:15:21,17.8409,-92.618,0.0,0.0,53.0,"Tabasco, Mexico",MX-TAB
+Tlaxcala,31,Mexico,2026-03-07 17:15:21,19.3182,-98.2375,0.0,0.0,31.0,"Tlaxcala, Mexico",MX-TLA
+Veracruz,36,Mexico,2026-03-07 17:15:21,19.1738,-96.1342,0.0,0.0,36.0,"Veracruz, Mexico",MX-VER
+Yucatan,10,Mexico,2026-03-07 17:15:21,20.7099,-89.0943,0.0,0.0,10.0,"Yucatan, Mexico",MX-YUC
