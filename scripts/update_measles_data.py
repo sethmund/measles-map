@@ -7,6 +7,31 @@ import re
 from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
 
+def fetch_us_data():
+    """Retrieves and aggregates JHU US county-level measles data."""
+    jhu_url = "https://raw.githubusercontent.com/CSSEGISandData/measles_data/main/measles_daily_cases_by_county.csv"
+    try:
+        df = pd.read_csv(jhu_url)
+        
+        # Filter for 2026 confirmed cases only
+        df = df[(df['date'].str.startswith('2026')) & 
+                (df['outcome_type'] == 'case_lab-confirmed')]
+        
+        # Aggregate by FIPS (location_id)
+        us_agg = df.groupby(['location_id', 'location_name']).agg({'value': 'sum'}).reset_index()
+        us_agg.columns = ['FIPS', 'Combined_Key', 'Confirmed']
+        
+        # Standardize for your NA schema
+        us_agg['Province_State'] = us_agg['Combined_Key'].str.split(',').str[-1].strip()
+        us_agg['Country_Region'] = 'US'
+        us_agg['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        us_agg['ISO3166_2'] = us_agg['FIPS'].astype(str).str.zfill(5) # Keep FIPS for US
+        
+        return us_agg
+    except Exception as e:
+        print(f"US Data Error: {e}")
+        return pd.DataFrame()
+
 def fetch_canada_data():
     """Uses Playwright to render the dynamic PHAC table."""
     url = "https://health-infobase.canada.ca/measles-rubella/"
@@ -138,10 +163,12 @@ def fetch_mexico_data():
 def main():
     df_can = fetch_canada_data()
     df_mex = fetch_mexico_data()
-    master_df = pd.concat([df_can, df_mex], ignore_index=True)
+    df_usa = fetch_us_data()
+    
+    # Combine into a single Master CSV
+    master_df = pd.concat([df_can, df_mex, df_usa], ignore_index=True)
+    
     if not master_df.empty:
+        # Use a single consistent filename for the D3 map
         master_df.to_csv("measles_na_update.csv", index=False)
-        print("Update complete.")
-
-if __name__ == "__main__":
-    main()
+        print("North American Master CSV updated.")
