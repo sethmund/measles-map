@@ -207,10 +207,14 @@ Promise.all([
             .on("mouseout", () => tooltip.style("opacity", 0));
     }
 
-    // Reset view on background click
-    svg.call(zoom).on("click", () => {
+svg.call(zoom).on("click", () => {
         svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-        g.selectAll(".
+        g.selectAll(".county-layer").remove();
+    });
+
+}).catch(err => {
+    document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Load Error: ${err.message}</span>`;
+});
 </script>
 </body>
 </html>
