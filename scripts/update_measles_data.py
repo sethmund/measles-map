@@ -19,61 +19,63 @@ from datetime import datetime, timedelta
 from io import StringIO
 
 def fetch_canada_data():
-    """Verified: Scrapes Canada data by searching for the province table headers."""
+    """Verified: Scrapes Canada data by finding the table with provincial headers."""
     url = "https://health-infobase.canada.ca/measles-rubella/"
     try:
         response = requests.get(url, timeout=15)
         response.raise_for_status()
         
-        # StringIO is required for current pandas versions
+        # We search for a table that contains 'Province or territory' in its text
+        # This bypasses issues with captions or hidden span tags
         tables = pd.read_html(io.StringIO(response.text))
-        
-        # Target the table containing the geographic distribution
         df = next((t for t in tables if any("province or territory" in str(c).lower() for c in t.columns)), None)
         
         if df is None:
-            raise ValueError("Target table not found.")
+            raise ValueError("Target table not found on PHAC page.")
 
-        # Column 0: Province, Column 2: Total cases (confirmed + probable)
+        # Column 0: Province, Column 2: Total cases in 2026
         df = df.iloc[:, [0, 2]].copy()
         df.columns = ['Province_State', 'Confirmed']
         
-        # Cleanup
+        # Cleanup: Remove 'Canada' total and footer junk
         df = df[~df['Province_State'].str.contains('Canada|Total|Footnote', case=False)].copy()
+        
+        # Clean footnote brackets/superscripts from strings and numbers
         df['Province_State'] = df['Province_State'].str.replace(r'\[.*\]', '', regex=True).str.strip()
         df['Confirmed'] = df['Confirmed'].astype(str).str.extract(r'(\d+)').fillna(0).astype(int)
-
-        # Province metadata for D3 join
+        
+        # Metadata for D3 join
         canada_meta = {
-            'Alberta': {'ISO': 'CA-AB', 'Lat': 53.93, 'Lon': -116.57},
-            'British Columbia': {'ISO': 'CA-BC', 'Lat': 53.72, 'Lon': -127.64},
-            'Manitoba': {'ISO': 'CA-MB', 'Lat': 53.76, 'Lon': -98.81},
-            'New Brunswick': {'ISO': 'CA-NB', 'Lat': 46.56, 'Lon': -66.46},
-            'Newfoundland and Labrador': {'ISO': 'CA-NL', 'Lat': 53.13, 'Lon': -57.66},
-            'Nova Scotia': {'ISO': 'CA-NS', 'Lat': 44.68, 'Lon': -63.74},
-            'Ontario': {'ISO': 'CA-ON', 'Lat': 51.25, 'Lon': -85.32},
-            'Prince Edward Island': {'ISO': 'CA-PE', 'Lat': 46.51, 'Lon': -63.41},
-            'Quebec': {'ISO': 'CA-QC', 'Lat': 52.93, 'Lon': -73.54},
-            'Saskatchewan': {'ISO': 'CA-SK', 'Lat': 52.93, 'Lon': -106.45},
-            'Northwest Territories': {'ISO': 'CA-NT', 'Lat': 64.82, 'Lon': -124.84},
-            'Nunavut': {'ISO': 'CA-NU', 'Lat': 70.29, 'Lon': -83.10},
-            'Yukon': {'ISO': 'CA-YT', 'Lat': 64.28, 'Lon': -135.00}
+            'Alberta': {'ISO': 'CA-AB', 'Lat': 53.9333, 'Long': -116.5765},
+            'British Columbia': {'ISO': 'CA-BC', 'Lat': 53.7267, 'Long': -127.6476},
+            'Manitoba': {'ISO': 'CA-MB', 'Lat': 53.7609, 'Long': -98.8139},
+            'New Brunswick': {'ISO': 'CA-NB', 'Lat': 46.5653, 'Long': -66.4619},
+            'Newfoundland and Labrador': {'ISO': 'CA-NL', 'Lat': 53.1355, 'Long': -57.6604},
+            'Nova Scotia': {'ISO': 'CA-NS', 'Lat': 44.6820, 'Long': -63.7443},
+            'Ontario': {'ISO': 'CA-ON', 'Lat': 51.2538, 'Long': -85.3232},
+            'Prince Edward Island': {'ISO': 'CA-PE', 'Lat': 46.5107, 'Long': -63.4168},
+            'Quebec': {'ISO': 'CA-QC', 'Lat': 52.9399, 'Long': -73.5491},
+            'Saskatchewan': {'ISO': 'CA-SK', 'Lat': 52.9399, 'Long': -106.4509},
+            'Northwest Territories': {'ISO': 'CA-NT', 'Lat': 64.8255, 'Long': -124.8457},
+            'Nunavut': {'ISO': 'CA-NU', 'Lat': 70.2998, 'Long': -83.1076},
+            'Yukon': {'ISO': 'CA-YT', 'Lat': 64.2823, 'Long': -135.0000}
         }
         
-        df = df[df['Province_State'].isin(canada_meta.keys())].copy()
         df['Country_Region'] = 'Canada'
         df['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['Deaths'], df['Recovered'] = 0, 0
         df['Active'] = df['Confirmed']
         df['Combined_Key'] = df['Province_State'] + ", " + df['Country_Region']
         
-        df['ISO3166_2'] = df['Province_State'].map(lambda x: canada_meta[x]['ISO'])
-        df['Lat'] = df['Province_State'].map(lambda x: canada_meta[x]['Lat'])
-        df['Long_'] = df['Province_State'].map(lambda x: canada_meta[x]['Lon'])
+        df['ISO3166_2'] = df['Province_State'].map(lambda x: canada_meta.get(x, {}).get('ISO', ''))
+        df['Lat'] = df['Province_State'].map(lambda x: canada_meta.get(x, {}).get('Lat', ''))
+        df['Long_'] = df['Province_State'].map(lambda x: canada_meta.get(x, {}).get('Long', ''))
         
-        return df
+        return df[['Province_State', 'Country_Region', 'Last_Update', 'Lat', 'Long_', 
+                   'Confirmed', 'Deaths', 'Recovered', 'Active', 'Combined_Key', 'ISO3166_2']]
+                   
     except Exception as e:
-        print(f"Canada Error: {e}")
+        print(f"Error fetching Canada data: {e}")
         return pd.DataFrame()
 
 def fetch_mexico_data():
