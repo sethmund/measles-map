@@ -98,85 +98,89 @@
 
 <script>
 // --- CONFIGURATION ---
-// Using your local repo files to avoid 404 errors
 const US_GEO = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
-const CA_GEO = "canada.json"; 
-const MX_GEO = "mx.json";
 const DATA_URL = "measles_na_update.csv";
 
+// 1. INITIALIZE D3 CONSTANTS
+const width = window.innerWidth;
+const height = window.innerHeight;
 const DOMAIN = [1, 10, 50, 100, 500];
 const RANGE = ["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"];
+
+const svg = d3.select('body').append('svg').attr('viewBox', [0, 0, width, height]);
+const g = svg.append("g");
+const tooltip = d3.select(".tooltip");
+
+// 2. DEFINE PROJECTION & SCALES
 const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
+const projection = d3.geoConicEqualArea()
+    .parallels([15, 60])
+    .rotate([100, 0])
+    .center([0, 38])
+    .scale(width * 0.5) 
+    .translate([width / 2, height / 2]);
 
-(async function() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const svg = d3.select('body').append('svg').attr('viewBox', [0, 0, width, height]);
-    const g = svg.append("g");
-    const tooltip = d3.select(".tooltip");
+const path = d3.geoPath().projection(projection);
 
-    // Defined locally to fix "ReferenceError"
-    const showTooltip = (event, name, val = 0) => {
-        tooltip.style("opacity", 1)
-            .html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
-            .style("left", (event.pageX + 15) + "px")
-            .style("top", (event.pageY - 28) + "px");
-    };
-    const hideTooltip = () => tooltip.style("opacity", 0);
+// 3. TOOLTIP FUNCTIONS
+const showTooltip = (event, name, val = 0) => {
+    tooltip.style("opacity", 1)
+        .html(`<strong>${name}</strong><br>Confirmed: ${(+val).toLocaleString()}`)
+        .style("left", (event.pageX + 15) + "px")
+        .style("top", (event.pageY - 28) + "px");
+};
+const hideTooltip = () => tooltip.style("opacity", 0);
 
-    const projection = d3.geoConicEqualArea()
-        .parallels([15, 60]).rotate([100, 0]).center([0, 38])
-        .scale(width * 0.5).translate([width / 2, height / 2]);
+// 4. MAIN DATA LOAD
+Promise.all([
+    d3.json("canada.json"), 
+    d3.json("mx.json"),     
+    d3.json(US_GEO),        
+    d3.csv(DATA_URL)
+]).then(([ca, mx, us, rawData]) => {
+    
+    // Aggregate by Name to solve '00000' FIPS issue (SC, UT, VA)
+    const nameDataMap = new Map();
+    let globalSum = 0;
 
-    const path = d3.geoPath().projection(projection);
+    rawData.forEach(d => {
+        const val = +d.Confirmed || 0;
+        const name = d.Province_State;
+        globalSum += val;
+        nameDataMap.set(name, (nameDataMap.get(name) || 0) + val);
+    });
 
-    try {
-        const [us, ca, mx, rawData] = await Promise.all([
-            d3.json(US_GEO),
-            d3.json(CA_GEO),
-            d3.json(MX_GEO),
-            d3.csv(DATA_URL)
-        ]);
+    // Update UI
+    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Connection Secure</span>";
+    document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
 
-        // THE KEY FIX: Aggregating by NAME (Province_State)
-        // This captures the '00000' records for SC, UT, and VA
-        const nameDataMap = new Map();
-        rawData.forEach(d => {
-            const val = +d.Confirmed || 0;
-            const name = d.Province_State;
-            nameDataMap.set(name, (nameDataMap.get(name) || 0) + val);
-        });
+    // DRAW CANADA
+    g.append("g").selectAll("path")
+        .data(topojson.feature(ca, ca.objects.ne_10m_admin_1_states_provinces).features)
+        .join("path").attr("class", "state").attr("d", path)
+        .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
+        .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
+        .on("mouseout", hideTooltip);
 
-        document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
+    // DRAW MEXICO
+    g.append("g").selectAll("path")
+        .data(topojson.feature(mx, mx.objects.mexico).features)
+        .join("path").attr("class", "state").attr("d", path)
+        .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
+        .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
+        .on("mouseout", hideTooltip);
 
-        // Draw Canada (Admin-1)
-        g.append("g").selectAll("path")
-            .data(topojson.feature(ca, ca.objects.ne_10m_admin_1_states_provinces).features)
-            .join("path").attr("class", "state").attr("d", path)
-            .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
-            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
-            .on("mouseout", hideTooltip);
+    // DRAW US STATES
+    g.append("g").selectAll("path")
+        .data(topojson.feature(us, us.objects.states).features)
+        .join("path").attr("class", "state").attr("d", path)
+        .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
+        .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
+        .on("mouseout", hideTooltip);
 
-        // Draw Mexico
-        g.append("g").selectAll("path")
-            .data(topojson.feature(mx, mx.objects.mexico).features)
-            .join("path").attr("class", "state").attr("d", path)
-            .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
-            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
-            .on("mouseout", hideTooltip);
-
-        // Draw US States (Joining by NAME to catch '00000' FIPS codes)
-        g.append("g").selectAll("path")
-            .data(topojson.feature(us, us.objects.states).features)
-            .join("path").attr("class", "state").attr("d", path)
-            .attr("fill", d => color(nameDataMap.get(d.properties.name) || 0))
-            .on("mouseover", (e, d) => showTooltip(e, d.properties.name, nameDataMap.get(d.properties.name)))
-            .on("mouseout", hideTooltip);
-
-    } catch (e) { 
-        document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Error: ${e.message}</span>`;
-    }
-})();
+}).catch(err => {
+    document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Error: ${err.message}</span>`;
+});
 </script>
 </body>
 </html>
