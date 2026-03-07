@@ -12,29 +12,30 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas requests playwright beautifulsoup4
+          pip install pandas requests playwright beautifulsoup4 lxml html5lib
           python -m playwright install chromium --with-deps
 
-      - name: Step 1: Process JHU US Data
+      - name: Step 1 - Process JHU US Data
         run: python scripts/process_jhu_data.py
 
-      - name: Step 2: Run North American ETL & Merge
+      - name: Step 2 - Run North American ETL
         run: python scripts/update_measles_data.py
 
-      - name: Step 3: Commit and push changes
+      - name: Step 3 - Commit and Push Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          # Explicitly add both the intermediate and final files
           git add measles_na_update.csv jhu_us_summary.csv
+          # Prevent failure if there are no new changes to commit
           git diff --quiet && git diff --staged --quiet || (git commit -m "Automated data update: $(date -u +'%Y-%m-%d')" && git push)
