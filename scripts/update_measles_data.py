@@ -146,12 +146,12 @@ def fetch_mexico_data():
         print(f"PDF stream parsing error: {e}")
         return pd.DataFrame()
 
-    # 3. Clean and format the extracted Dataframe via positional indexing
+# 3. Clean and format the extracted Dataframe via positional indexing
     df = pd.DataFrame(raw_data[2:])
     
-    # Isolate State (index 0) and Total Confirmed 2025-2026 (last index)
-    df = df.rename(columns={0: 'Estado', df.columns[-1]: 'Total_Acumulado'})
-    df = df[['Estado', 'Total_Acumulado']].copy()
+    # Isolate State (index 0) and Confirmed 2026 (index 7)
+    df = df.rename(columns={0: 'Estado', 7: 'Confirmados_2026'})
+    df = df[['Estado', 'Confirmados_2026']].copy()
     
     # Drop empty rows and aggregate totals
     df = df[df['Estado'].notna()]
@@ -159,8 +159,8 @@ def fetch_mexico_data():
     df['Estado'] = df['Estado'].astype(str).str.replace('\n', ' ').str.strip()
     
     # Coerce OCR numeric artifacts
-    df['Total_Acumulado'] = pd.to_numeric(
-        df['Total_Acumulado'].astype(str).str.replace(',', '').str.strip(), 
+    df['Confirmados_2026'] = pd.to_numeric(
+        df['Confirmados_2026'].astype(str).str.replace(',', '').str.strip(), 
         errors='coerce'
     ).fillna(0)
 
@@ -200,17 +200,20 @@ def fetch_mexico_data():
         'Zacatecas': {'ISO': 'MX-ZAC', 'Lat': 22.7709, 'Long': -102.5832}
     }
     
-    out_df = pd.DataFrame()
+out_df = pd.DataFrame()
     out_df['Province_State'] = df['Estado']
     out_df['Country_Region'] = 'Mexico'
     out_df['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     out_df['Lat'] = df['Estado'].map(lambda x: mexico_meta.get(x, {}).get('Lat', 0.0))
     out_df['Long_'] = df['Estado'].map(lambda x: mexico_meta.get(x, {}).get('Long', 0.0))
-    out_df['Confirmed'] = df['Total_Acumulado']
+    
+    # Assign the correct 2026 column
+    out_df['Confirmed'] = df['Confirmados_2026'] 
+    
     out_df['Deaths'] = 0
     out_df['Recovered'] = 0
-    out_df['Active'] = df['Total_Acumulado']
-    # Normalize strings for the Combined_Key to match standard reporting
+    out_df['Active'] = df['Confirmados_2026']
+    # Normalize strings for the Combined_Key
     out_df['Combined_Key'] = df['Estado'].str.replace('á', 'a').str.replace('é', 'e').str.replace('í', 'i').str.replace('ó', 'o') + ", Mexico"
     out_df['ISO3166_2'] = df['Estado'].map(lambda x: mexico_meta.get(x, {}).get('ISO', ''))
 
