@@ -102,10 +102,47 @@ const svg = d3.select('body').append('svg').attr('viewBox', [0, 0, width, height
 const g = svg.append("g");
 const tooltip = d3.select(".tooltip");
 
-const color = d3.scaleThreshold()
-    .domain([1, 10, 50, 100, 500])
-    .range(["#1a1a1a", "#4a0404", "#8a0808", "#c40c0c", "#ff1111", "#ff5555"]);
+// Expanded domain to capture high-variance hotspots
+const DOMAIN = [1, 50, 200, 500, 1000, 2000];
+const RANGE = ["#1a1a1a", "#4a0404", "#7a0606", "#b50a0a", "#f00e0e", "#ff4d4d", "#ff9999"];
 
+const color = d3.scaleThreshold().domain(DOMAIN).range(RANGE);
+
+// --- LEGEND GENERATION ---
+    const legendContainer = d3.select("#legend-container");
+    legendContainer.html(""); // Clear existing contents
+
+    const legendSvg = legendContainer.append("svg")
+        .attr("width", 160)
+        .attr("height", DOMAIN.length * 22 + 40);
+        
+    legendSvg.append("text")
+        .attr("x", 0).attr("y", 15)
+        .attr("fill", "#eee").attr("font-size", "13px").attr("font-weight", "bold")
+        .text("Confirmed Cases");
+
+    // Create a combined array for the legend keys: 0, then the domain thresholds
+    const legendKeys = [0, ...DOMAIN];
+
+    const legendItem = legendSvg.selectAll("g")
+        .data(legendKeys)
+        .join("g")
+        .attr("transform", (d, i) => `translate(0, ${i * 22 + 25})`);
+
+    legendItem.append("rect")
+        .attr("width", 16).attr("height", 16)
+        .attr("fill", d => color(d))
+        .attr("stroke", "#333").attr("stroke-width", 0.5);
+
+    legendItem.append("text")
+        .attr("x", 26).attr("y", 12)
+        .attr("fill", "#ccc").attr("font-size", "12px")
+        .text((d, i) => {
+            if (i === 0) return "0";
+            if (i === legendKeys.length - 1) return `${d.toLocaleString()}+`;
+            return `${d.toLocaleString()} - ${(legendKeys[i+1] - 1).toLocaleString()}`;
+        });
+    
 const projection = d3.geoConicEqualArea()
     .parallels([15, 60]).rotate([100, 0]).center([0, 38])
     .scale(width * 0.5).translate([width / 2, height / 2]);
@@ -139,6 +176,10 @@ Promise.all([
 
     rawData.forEach(d => {
         const val = +d.Confirmed || 0;
+        
+        // Skip empty rows, "Unknown", or Country-level aggregate rows causing the duplication
+        if (!d.Province_State || d.Province_State === d.Country_Region || d.Province_State === "Unknown") return;
+
         globalSum += val;
         nameMap.set(d.Province_State, (nameMap.get(d.Province_State) || 0) + val);
         if (d.Country_Region === "US") fipsMap.set(d.ISO3166_2, val);
