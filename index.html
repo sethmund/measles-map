@@ -246,7 +246,7 @@ const nameMap = new Map();
             renderCounties(d, usCounties);
         });
 
-    // 4. COUNTY DRILL-DOWN LOGIC
+// 4. COUNTY DRILL-DOWN LOGIC
     function renderCounties(stateFeature, allCounties) {
         g.selectAll(".county-layer").remove();
         
@@ -257,7 +257,8 @@ const nameMap = new Map();
             .attr("d", path)
             .attr("fill", d => {
                 const countVal = fipsMap.get(d.id) || 0;
-                return countVal > 0 ? color(countVal) : (nameMap.get(stateFeature.properties.name) > 0 ? "#2a0000" : "#1a1a1a");
+                // Strictly evaluate county-level FIPS data
+                return color(countVal); 
             })
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, fipsMap.get(d.id)))
             .on("mouseout", () => tooltip.style("opacity", 0));
