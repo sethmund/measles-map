@@ -7,6 +7,8 @@ import re
 from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
 import os
+import pdfplumber
+from bs4 import BeautifulSoup
 
 def fetch_us_data():
     """Fallback aggregator if jhu_us_summary.csv is missing."""
@@ -89,13 +91,6 @@ def fetch_canada_data():
     except Exception as e:
         print(f"Canada Playwright Error: {e}")
         return pd.DataFrame()
-
-import io
-import requests
-import pdfplumber
-import pandas as pd
-from bs4 import BeautifulSoup
-from datetime import datetime
 
 def fetch_mexico_data():
     """
@@ -200,7 +195,7 @@ def fetch_mexico_data():
         'Zacatecas': {'ISO': 'MX-ZAC', 'Lat': 22.7709, 'Long': -102.5832}
     }
     
-out_df = pd.DataFrame()
+    out_df = pd.DataFrame()
     out_df['Province_State'] = df['Estado']
     out_df['Country_Region'] = 'Mexico'
     out_df['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
