@@ -2,6 +2,9 @@
 
 ![Status](https://img.shields.io/badge/Status-Live-green)
 
+<img width="923" height="1274" alt="image" src="https://github.com/user-attachments/assets/d67b5a85-a367-4021-95b4-2dcd145174a7" />
+
+
 An interactive, drill-down epidemiological map of laboratory-confirmed measles cases across North America (United States, Canada, and Mexico), built with **D3.js**.
 
 ### 🔴 [Click Here to View the Live Map](https://sethmund.github.io/measles-map/)
