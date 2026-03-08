@@ -130,6 +130,20 @@ Promise.all([
     d3.json(GEO_URL), 
     d3.csv(DATA_URL)
 ]).then(([na, rawData]) => {
+
+    .then(([na, rawData]) => {
+    // --- DIAGNOSTIC BLOCK START ---
+    console.log("1. Available TopoJSON Layers:", Object.keys(na.objects));
+    
+    Object.keys(na.objects).forEach(key => {
+        const features = topojson.feature(na, na.objects[key]).features;
+        console.log(`2. Layer [${key}] Feature Count:`, features.length);
+        if (features.length > 0) {
+            console.log(`3. Layer [${key}] Sample Properties:`, features[0].properties);
+            console.log(`4. Layer [${key}] Sample ID:`, features[0].id);
+        }
+    });
+    // --- DIAGNOSTIC BLOCK END ---
     
     const nameMap = new Map(); 
     const fipsMap = new Map(); 
