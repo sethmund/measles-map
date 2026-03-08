@@ -1,134 +1,134 @@
 Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key,ISO3166_2
-Manitoba,Canada,2026-03-07 18:13:45,53.7609,-98.8139,228,0,0,228,"Manitoba, Canada",CA-MB
-Alberta,Canada,2026-03-07 18:13:45,53.9333,-116.5765,72,0,0,72,"Alberta, Canada",CA-AB
-Ontario,Canada,2026-03-07 18:13:45,51.2538,-85.3232,4,0,0,4,"Ontario, Canada",CA-ON
-British Columbia,Canada,2026-03-07 18:13:45,53.7267,-127.6476,17,0,0,17,"British Columbia, Canada",CA-BC
-Nova Scotia,Canada,2026-03-07 18:13:45,44.682,-63.7443,10,0,0,10,"Nova Scotia, Canada",CA-NS
-Saskatchewan,Canada,2026-03-07 18:13:45,52.9399,-106.4509,5,0,0,5,"Saskatchewan, Canada",CA-SK
-Quebec,Canada,2026-03-07 18:13:45,52.9399,-73.5491,3,0,0,3,"Quebec, Canada",CA-QC
-New Brunswick,Canada,2026-03-07 18:13:45,46.5653,-66.4619,0,0,0,0,"New Brunswick, Canada",CA-NB
-Newfoundland and Labrador,Canada,2026-03-07 18:13:45,53.1355,-57.6604,0,0,0,0,"Newfoundland and Labrador, Canada",CA-NL
-Northwest Territories,Canada,2026-03-07 18:13:45,64.8255,-124.8457,0,0,0,0,"Northwest Territories, Canada",CA-NT
-Nunavut,Canada,2026-03-07 18:13:45,70.2998,-83.1076,0,0,0,0,"Nunavut, Canada",CA-NU
-Prince Edward Island,Canada,2026-03-07 18:13:45,46.5107,-63.4168,0,0,0,0,"Prince Edward Island, Canada",CA-PE
-Yukon,Canada,2026-03-07 18:13:45,64.2823,-135.0,0,0,0,0,"Yukon, Canada",CA-YT
-Aguascalientes,Mexico,2026-03-07 18:13:50,21.8853,-102.2916,7,0,0,7,"Aguascalientes, Mexico",MX-AGU
-Baja California,Mexico,2026-03-07 18:13:50,30.8406,-115.2838,17,0,0,17,"Baja California, Mexico",MX-BCN
-Baja California Sur,Mexico,2026-03-07 18:13:50,26.0444,-111.6661,2,0,0,2,"Baja California Sur, Mexico",MX-BCS
-Coahuila,Mexico,2026-03-07 18:13:50,27.0587,-101.7068,4,0,0,4,"Coahuila, Mexico",MX-COA
-Colima,Mexico,2026-03-07 18:13:50,19.1223,-104.0028,69,0,0,69,"Colima, Mexico",MX-COL
-Chiapas,Mexico,2026-03-07 18:13:50,16.7569,-93.1292,395,0,0,395,"Chiapas, Mexico",MX-CHP
-Chihuahua,Mexico,2026-03-07 18:13:50,28.633,-106.0691,18,0,0,18,"Chihuahua, Mexico",MX-CHH
-Ciudad de Mexico,Mexico,2026-03-07 18:13:50,19.4326,-99.1332,257,0,0,257,"Ciudad de Mexico, Mexico",MX-CMX
-Durango,Mexico,2026-03-07 18:13:50,24.0277,-104.6532,76,0,0,76,"Durango, Mexico",MX-DUR
-Guanajuato,Mexico,2026-03-07 18:13:50,21.019,-101.2574,5,0,0,5,"Guanajuato, Mexico",MX-GUA
-Guerrero,Mexico,2026-03-07 18:13:50,17.5809,-99.8237,61,0,0,61,"Guerrero, Mexico",MX-GRO
-Hidalgo,Mexico,2026-03-07 18:13:50,20.0911,-98.7624,8,0,0,8,"Hidalgo, Mexico",MX-HID
-Jalisco,Mexico,2026-03-07 18:13:50,20.6595,-103.349,2663,0,0,2663,"Jalisco, Mexico",MX-JAL
-Mexico,Mexico,2026-03-07 18:13:50,19.3202,-99.5694,174,0,0,174,"Mexico, Mexico",MX-MEX
-Michoacan,Mexico,2026-03-07 18:13:50,19.5665,-101.7068,99,0,0,99,"Michoacan, Mexico",MX-MIC
-Morelos,Mexico,2026-03-07 18:13:50,18.6813,-99.1013,9,0,0,9,"Morelos, Mexico",MX-MOR
-Nayarit,Mexico,2026-03-07 18:13:50,21.7514,-104.8455,31,0,0,31,"Nayarit, Mexico",MX-NAY
-Nuevo Leon,Mexico,2026-03-07 18:13:50,25.5922,-99.9962,32,0,0,32,"Nuevo Leon, Mexico",MX-NLE
-Oaxaca,Mexico,2026-03-07 18:13:50,17.0732,-96.7266,13,0,0,13,"Oaxaca, Mexico",MX-OAX
-Puebla,Mexico,2026-03-07 18:13:50,19.0414,-98.2063,102,0,0,102,"Puebla, Mexico",MX-PUE
-Queretaro,Mexico,2026-03-07 18:13:50,20.5888,-100.3899,15,0,0,15,"Queretaro, Mexico",MX-QUE
-Quintana Roo,Mexico,2026-03-07 18:13:50,19.1817,-88.4791,41,0,0,41,"Quintana Roo, Mexico",MX-ROO
-San Luis Potosi,Mexico,2026-03-07 18:13:50,22.1565,-100.9855,4,0,0,4,"San Luis Potosi, Mexico",MX-SLP
-Sinaloa,Mexico,2026-03-07 18:13:50,25.1721,-107.4795,186,0,0,186,"Sinaloa, Mexico",MX-SIN
-Sonora,Mexico,2026-03-07 18:13:50,29.2972,-110.3309,80,0,0,80,"Sonora, Mexico",MX-SON
-Tabasco,Mexico,2026-03-07 18:13:50,17.8409,-92.618,53,0,0,53,"Tabasco, Mexico",MX-TAB
-Tlaxcala,Mexico,2026-03-07 18:13:50,19.3182,-98.2375,31,0,0,31,"Tlaxcala, Mexico",MX-TLA
-Veracruz,Mexico,2026-03-07 18:13:50,19.1738,-96.1342,36,0,0,36,"Veracruz, Mexico",MX-VER
-Yucatan,Mexico,2026-03-07 18:13:50,20.7099,-89.0943,10,0,0,10,"Yucatan, Mexico",MX-YUC
-Utah,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Bear River, Utah",00000
-Virginia,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Central Region, Virginia",00000
-Utah,US,2026-03-07 18:13:41,0.0,0.0,20,0,0,0,"Central, Utah",00000
-Virginia,US,2026-03-07 18:13:41,0.0,0.0,9,0,0,0,"Northern Region, Virginia",00000
-Utah,US,2026-03-07 18:13:41,0.0,0.0,89,0,0,0,"Southwest Health District, Utah",00000
-Utah,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Tricounty, Utah",00000
-South Carolina,US,2026-03-07 18:13:41,0.0,0.0,692,0,0,0,"Upstate, South Carolina",00000
-Florida,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Alachua, Florida",12001
-Florida,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Broward, Florida",12011
-Florida,US,2026-03-07 18:13:41,0.0,0.0,93,0,0,0,"Collier, Florida",12021
-Florida,US,2026-03-07 18:13:41,0.0,0.0,6,0,0,0,"Duval, Florida",12031
-Florida,US,2026-03-07 18:13:41,0.0,0.0,5,0,0,0,"Escambia, Florida",12033
-Florida,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Hillsborough, Florida",12057
-Florida,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Lee, Florida",12071
-Florida,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Manatee, Florida",12081
-Florida,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Miami-Dade, Florida",12086
-Florida,US,2026-03-07 18:13:41,0.0,0.0,5,0,0,0,"Pinellas, Florida",12103
-Florida,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"St. Johns, Florida",12109
-Georgia,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Coastal Health District, Georgia",00013
-Georgia,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Bryan, Georgia",13029
-Idaho,US,2026-03-07 18:13:41,0.0,0.0,6,0,0,0,"Canyon, Idaho",16027
-Idaho,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Madison, Idaho",16065
-Illinois,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Metro East , Illinois",00017
-Illinois,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Unknown County, Illinois",00017
-Kentucky,US,2026-03-07 18:13:41,0.0,0.0,4,0,0,0,"Jessamine, Kentucky",21113
-Maine,US,2026-03-07 18:13:41,0.0,0.0,5,0,0,0,"Penobscot, Maine",23019
-Massachusetts,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Unknown County, Massachusetts",00025
-Massachusetts,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Greater Boston, Massachusetts",25025
-Minnesota,US,2026-03-07 18:13:41,0.0,0.0,12,0,0,0,"Unknown County, Minnesota",00027
-Nebraska,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Unknown County, Nebraska",00031
-Nebraska,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Lancaster, Nebraska",31109
-New Mexico,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Dona Ana, New Mexico",35013
-New Mexico,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Hidalgo, New Mexico",35023
-New Mexico,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Luna, New Mexico",35029
-New York,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"New York City, New York",36061
-New York,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Rockland, New York",36087
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,7,0,0,0,"Buncombe, North Carolina",37021
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Burke, North Carolina",37023
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Cabarrus, North Carolina",37025
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Johnston, North Carolina",37101
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Lincoln, North Carolina",37109
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Mecklenburg, North Carolina",37119
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Nash, North Carolina",37127
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,4,0,0,0,"Polk, North Carolina",37149
-North Carolina,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Union, North Carolina",37179
-North Dakota,US,2026-03-07 18:13:41,0.0,0.0,20,0,0,0,"Pembina, North Dakota",38067
-North Dakota,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Traill, North Dakota",38097
-North Dakota,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Walsh, North Dakota",38099
-North Dakota,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Williams, North Dakota",38105
-Ohio,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Cuyahoga, Ohio",39035
-Ohio,US,2026-03-07 18:13:41,0.0,0.0,6,0,0,0,"Franklin, Ohio",39049
-Oklahoma,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Unknown County, Oklahoma",40109
-Arizona,US,2026-03-07 18:13:41,0.0,0.0,4,0,0,0,"Maricopa, Arizona",04013
-Arizona,US,2026-03-07 18:13:41,0.0,0.0,47,0,0,0,"Mohave, Arizona",04015
-Arizona,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Pima, Arizona",04019
-Arizona,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Pinal, Arizona",04021
-Oregon,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Unknown County, Oregon",00041
-Oregon,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Clackamas, Oregon",41005
-Oregon,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Linn, Oregon",41043
-Pennsylvania,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Chester, Pennsylvania",42029
-Pennsylvania,US,2026-03-07 18:13:41,0.0,0.0,8,0,0,0,"Lancaster, Pennsylvania",42071
-Pennsylvania,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Montgomery, Pennsylvania",42091
-South Dakota,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Brookings, South Dakota",46011
-South Dakota,US,2026-03-07 18:13:41,0.0,0.0,6,0,0,0,"Grant, South Dakota",46051
-Texas,US,2026-03-07 18:13:41,0.0,0.0,21,0,0,0,"El Paso, Texas",48141
-Texas,US,2026-03-07 18:13:41,0.0,0.0,6,0,0,0,"Rockwall, Texas",48397
-Utah,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Davis, Utah",49011
-Utah,US,2026-03-07 18:13:41,0.0,0.0,39,0,0,0,"Salt Lake, Utah",49035
-Utah,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"San Juan, Utah",49037
-Utah,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Summit, Utah",49043
-Utah,US,2026-03-07 18:13:41,0.0,0.0,6,0,0,0,"Tooele, Utah",49045
-Utah,US,2026-03-07 18:13:41,0.0,0.0,34,0,0,0,"Utah, Utah",49049
-Utah,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Weber-Morgan, Utah",49057
-Vermont,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Washington, Vermont",50023
-Washington,US,2026-03-07 18:13:41,0.0,0.0,8,0,0,0,"Clark, Washington",53011
-Washington,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Kittitas, Washington",53037
-Washington,US,2026-03-07 18:13:41,0.0,0.0,14,0,0,0,"Snohomish, Washington",53061
-Washington,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Stevens, Washington",53065
-Wisconsin,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Dane, Wisconsin",55025
-Wisconsin,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Waukesha, Wisconsin",55133
-California,US,2026-03-07 18:13:41,0.0,0.0,5,0,0,0,"Unknown County, California",00006
-California,US,2026-03-07 18:13:41,0.0,0.0,4,0,0,0,"Los Angeles, California",06037
-California,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Napa, California",06055
-California,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"Orange, California",06059
-California,US,2026-03-07 18:13:41,0.0,0.0,3,0,0,0,"Riverside, California",06065
-California,US,2026-03-07 18:13:41,0.0,0.0,2,0,0,0,"San Mateo, California",06081
-California,US,2026-03-07 18:13:41,0.0,0.0,9,0,0,0,"Shasta, California",06089
-Colorado,US,2026-03-07 18:13:41,0.0,0.0,5,0,0,0,"Adams, Colorado",08001
-Colorado,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Arapahoe, Colorado",08005
-Colorado,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Broomfield, Colorado",08014
-Colorado,US,2026-03-07 18:13:41,0.0,0.0,1,0,0,0,"Weld, Colorado",08123
+Manitoba,Canada,2026-03-08 02:07:29,53.7609,-98.8139,228,0,0,228,"Manitoba, Canada",CA-MB
+Alberta,Canada,2026-03-08 02:07:29,53.9333,-116.5765,72,0,0,72,"Alberta, Canada",CA-AB
+Ontario,Canada,2026-03-08 02:07:29,51.2538,-85.3232,4,0,0,4,"Ontario, Canada",CA-ON
+British Columbia,Canada,2026-03-08 02:07:29,53.7267,-127.6476,17,0,0,17,"British Columbia, Canada",CA-BC
+Nova Scotia,Canada,2026-03-08 02:07:29,44.682,-63.7443,10,0,0,10,"Nova Scotia, Canada",CA-NS
+Saskatchewan,Canada,2026-03-08 02:07:29,52.9399,-106.4509,5,0,0,5,"Saskatchewan, Canada",CA-SK
+Quebec,Canada,2026-03-08 02:07:29,52.9399,-73.5491,3,0,0,3,"Quebec, Canada",CA-QC
+New Brunswick,Canada,2026-03-08 02:07:29,46.5653,-66.4619,0,0,0,0,"New Brunswick, Canada",CA-NB
+Newfoundland and Labrador,Canada,2026-03-08 02:07:29,53.1355,-57.6604,0,0,0,0,"Newfoundland and Labrador, Canada",CA-NL
+Northwest Territories,Canada,2026-03-08 02:07:29,64.8255,-124.8457,0,0,0,0,"Northwest Territories, Canada",CA-NT
+Nunavut,Canada,2026-03-08 02:07:29,70.2998,-83.1076,0,0,0,0,"Nunavut, Canada",CA-NU
+Prince Edward Island,Canada,2026-03-08 02:07:29,46.5107,-63.4168,0,0,0,0,"Prince Edward Island, Canada",CA-PE
+Yukon,Canada,2026-03-08 02:07:29,64.2823,-135.0,0,0,0,0,"Yukon, Canada",CA-YT
+Aguascalientes,Mexico,2026-03-08 02:07:32,21.8853,-102.2916,7,0,0,7,"Aguascalientes, Mexico",MX-AGU
+Baja California,Mexico,2026-03-08 02:07:32,30.8406,-115.2838,17,0,0,17,"Baja California, Mexico",MX-BCN
+Baja California Sur,Mexico,2026-03-08 02:07:32,26.0444,-111.6661,2,0,0,2,"Baja California Sur, Mexico",MX-BCS
+Coahuila,Mexico,2026-03-08 02:07:32,27.0587,-101.7068,4,0,0,4,"Coahuila, Mexico",MX-COA
+Colima,Mexico,2026-03-08 02:07:32,19.1223,-104.0028,69,0,0,69,"Colima, Mexico",MX-COL
+Chiapas,Mexico,2026-03-08 02:07:32,16.7569,-93.1292,395,0,0,395,"Chiapas, Mexico",MX-CHP
+Chihuahua,Mexico,2026-03-08 02:07:32,28.633,-106.0691,18,0,0,18,"Chihuahua, Mexico",MX-CHH
+Ciudad de Mexico,Mexico,2026-03-08 02:07:32,19.4326,-99.1332,257,0,0,257,"Ciudad de Mexico, Mexico",MX-CMX
+Durango,Mexico,2026-03-08 02:07:32,24.0277,-104.6532,76,0,0,76,"Durango, Mexico",MX-DUR
+Guanajuato,Mexico,2026-03-08 02:07:32,21.019,-101.2574,5,0,0,5,"Guanajuato, Mexico",MX-GUA
+Guerrero,Mexico,2026-03-08 02:07:32,17.5809,-99.8237,61,0,0,61,"Guerrero, Mexico",MX-GRO
+Hidalgo,Mexico,2026-03-08 02:07:32,20.0911,-98.7624,8,0,0,8,"Hidalgo, Mexico",MX-HID
+Jalisco,Mexico,2026-03-08 02:07:32,20.6595,-103.349,2663,0,0,2663,"Jalisco, Mexico",MX-JAL
+Mexico,Mexico,2026-03-08 02:07:32,19.3202,-99.5694,174,0,0,174,"Mexico, Mexico",MX-MEX
+Michoacan,Mexico,2026-03-08 02:07:32,19.5665,-101.7068,99,0,0,99,"Michoacan, Mexico",MX-MIC
+Morelos,Mexico,2026-03-08 02:07:32,18.6813,-99.1013,9,0,0,9,"Morelos, Mexico",MX-MOR
+Nayarit,Mexico,2026-03-08 02:07:32,21.7514,-104.8455,31,0,0,31,"Nayarit, Mexico",MX-NAY
+Nuevo Leon,Mexico,2026-03-08 02:07:32,25.5922,-99.9962,32,0,0,32,"Nuevo Leon, Mexico",MX-NLE
+Oaxaca,Mexico,2026-03-08 02:07:32,17.0732,-96.7266,13,0,0,13,"Oaxaca, Mexico",MX-OAX
+Puebla,Mexico,2026-03-08 02:07:32,19.0414,-98.2063,102,0,0,102,"Puebla, Mexico",MX-PUE
+Queretaro,Mexico,2026-03-08 02:07:32,20.5888,-100.3899,15,0,0,15,"Queretaro, Mexico",MX-QUE
+Quintana Roo,Mexico,2026-03-08 02:07:32,19.1817,-88.4791,41,0,0,41,"Quintana Roo, Mexico",MX-ROO
+San Luis Potosi,Mexico,2026-03-08 02:07:32,22.1565,-100.9855,4,0,0,4,"San Luis Potosi, Mexico",MX-SLP
+Sinaloa,Mexico,2026-03-08 02:07:32,25.1721,-107.4795,186,0,0,186,"Sinaloa, Mexico",MX-SIN
+Sonora,Mexico,2026-03-08 02:07:32,29.2972,-110.3309,80,0,0,80,"Sonora, Mexico",MX-SON
+Tabasco,Mexico,2026-03-08 02:07:32,17.8409,-92.618,53,0,0,53,"Tabasco, Mexico",MX-TAB
+Tlaxcala,Mexico,2026-03-08 02:07:32,19.3182,-98.2375,31,0,0,31,"Tlaxcala, Mexico",MX-TLA
+Veracruz,Mexico,2026-03-08 02:07:32,19.1738,-96.1342,36,0,0,36,"Veracruz, Mexico",MX-VER
+Yucatan,Mexico,2026-03-08 02:07:32,20.7099,-89.0943,10,0,0,10,"Yucatan, Mexico",MX-YUC
+Utah,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Bear River, Utah",00000
+Virginia,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Central Region, Virginia",00000
+Utah,US,2026-03-08 02:07:24,0.0,0.0,20,0,0,0,"Central, Utah",00000
+Virginia,US,2026-03-08 02:07:24,0.0,0.0,9,0,0,0,"Northern Region, Virginia",00000
+Utah,US,2026-03-08 02:07:24,0.0,0.0,89,0,0,0,"Southwest Health District, Utah",00000
+Utah,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Tricounty, Utah",00000
+South Carolina,US,2026-03-08 02:07:24,0.0,0.0,692,0,0,0,"Upstate, South Carolina",00000
+Florida,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Alachua, Florida",12001
+Florida,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Broward, Florida",12011
+Florida,US,2026-03-08 02:07:24,0.0,0.0,93,0,0,0,"Collier, Florida",12021
+Florida,US,2026-03-08 02:07:24,0.0,0.0,6,0,0,0,"Duval, Florida",12031
+Florida,US,2026-03-08 02:07:24,0.0,0.0,5,0,0,0,"Escambia, Florida",12033
+Florida,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Hillsborough, Florida",12057
+Florida,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Lee, Florida",12071
+Florida,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Manatee, Florida",12081
+Florida,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Miami-Dade, Florida",12086
+Florida,US,2026-03-08 02:07:24,0.0,0.0,5,0,0,0,"Pinellas, Florida",12103
+Florida,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"St. Johns, Florida",12109
+Georgia,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Coastal Health District, Georgia",00013
+Georgia,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Bryan, Georgia",13029
+Idaho,US,2026-03-08 02:07:24,0.0,0.0,6,0,0,0,"Canyon, Idaho",16027
+Idaho,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Madison, Idaho",16065
+Illinois,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Metro East , Illinois",00017
+Illinois,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Unknown County, Illinois",00017
+Kentucky,US,2026-03-08 02:07:24,0.0,0.0,4,0,0,0,"Jessamine, Kentucky",21113
+Maine,US,2026-03-08 02:07:24,0.0,0.0,5,0,0,0,"Penobscot, Maine",23019
+Massachusetts,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Unknown County, Massachusetts",00025
+Massachusetts,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Greater Boston, Massachusetts",25025
+Minnesota,US,2026-03-08 02:07:24,0.0,0.0,12,0,0,0,"Unknown County, Minnesota",00027
+Nebraska,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Unknown County, Nebraska",00031
+Nebraska,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Lancaster, Nebraska",31109
+New Mexico,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Dona Ana, New Mexico",35013
+New Mexico,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Hidalgo, New Mexico",35023
+New Mexico,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Luna, New Mexico",35029
+New York,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"New York City, New York",36061
+New York,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Rockland, New York",36087
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,7,0,0,0,"Buncombe, North Carolina",37021
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Burke, North Carolina",37023
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Cabarrus, North Carolina",37025
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Johnston, North Carolina",37101
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Lincoln, North Carolina",37109
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Mecklenburg, North Carolina",37119
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Nash, North Carolina",37127
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,4,0,0,0,"Polk, North Carolina",37149
+North Carolina,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Union, North Carolina",37179
+North Dakota,US,2026-03-08 02:07:24,0.0,0.0,20,0,0,0,"Pembina, North Dakota",38067
+North Dakota,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Traill, North Dakota",38097
+North Dakota,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Walsh, North Dakota",38099
+North Dakota,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Williams, North Dakota",38105
+Ohio,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Cuyahoga, Ohio",39035
+Ohio,US,2026-03-08 02:07:24,0.0,0.0,6,0,0,0,"Franklin, Ohio",39049
+Oklahoma,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Unknown County, Oklahoma",40109
+Arizona,US,2026-03-08 02:07:24,0.0,0.0,4,0,0,0,"Maricopa, Arizona",04013
+Arizona,US,2026-03-08 02:07:24,0.0,0.0,47,0,0,0,"Mohave, Arizona",04015
+Arizona,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Pima, Arizona",04019
+Arizona,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Pinal, Arizona",04021
+Oregon,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Unknown County, Oregon",00041
+Oregon,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Clackamas, Oregon",41005
+Oregon,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Linn, Oregon",41043
+Pennsylvania,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Chester, Pennsylvania",42029
+Pennsylvania,US,2026-03-08 02:07:24,0.0,0.0,8,0,0,0,"Lancaster, Pennsylvania",42071
+Pennsylvania,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Montgomery, Pennsylvania",42091
+South Dakota,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Brookings, South Dakota",46011
+South Dakota,US,2026-03-08 02:07:24,0.0,0.0,6,0,0,0,"Grant, South Dakota",46051
+Texas,US,2026-03-08 02:07:24,0.0,0.0,21,0,0,0,"El Paso, Texas",48141
+Texas,US,2026-03-08 02:07:24,0.0,0.0,6,0,0,0,"Rockwall, Texas",48397
+Utah,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Davis, Utah",49011
+Utah,US,2026-03-08 02:07:24,0.0,0.0,39,0,0,0,"Salt Lake, Utah",49035
+Utah,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"San Juan, Utah",49037
+Utah,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Summit, Utah",49043
+Utah,US,2026-03-08 02:07:24,0.0,0.0,6,0,0,0,"Tooele, Utah",49045
+Utah,US,2026-03-08 02:07:24,0.0,0.0,34,0,0,0,"Utah, Utah",49049
+Utah,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Weber-Morgan, Utah",49057
+Vermont,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Washington, Vermont",50023
+Washington,US,2026-03-08 02:07:24,0.0,0.0,8,0,0,0,"Clark, Washington",53011
+Washington,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Kittitas, Washington",53037
+Washington,US,2026-03-08 02:07:24,0.0,0.0,14,0,0,0,"Snohomish, Washington",53061
+Washington,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Stevens, Washington",53065
+Wisconsin,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Dane, Wisconsin",55025
+Wisconsin,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Waukesha, Wisconsin",55133
+California,US,2026-03-08 02:07:24,0.0,0.0,5,0,0,0,"Unknown County, California",00006
+California,US,2026-03-08 02:07:24,0.0,0.0,4,0,0,0,"Los Angeles, California",06037
+California,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Napa, California",06055
+California,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"Orange, California",06059
+California,US,2026-03-08 02:07:24,0.0,0.0,3,0,0,0,"Riverside, California",06065
+California,US,2026-03-08 02:07:24,0.0,0.0,2,0,0,0,"San Mateo, California",06081
+California,US,2026-03-08 02:07:24,0.0,0.0,9,0,0,0,"Shasta, California",06089
+Colorado,US,2026-03-08 02:07:24,0.0,0.0,5,0,0,0,"Adams, Colorado",08001
+Colorado,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Arapahoe, Colorado",08005
+Colorado,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Broomfield, Colorado",08014
+Colorado,US,2026-03-08 02:07:24,0.0,0.0,1,0,0,0,"Weld, Colorado",08123
