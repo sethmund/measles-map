@@ -170,23 +170,38 @@ Promise.all([
     d3.csv(DATA_URL)
 ]).then(([ca, mx, us, rawData]) => {
     
-    const nameMap = new Map(); 
+const nameMap = new Map(); 
     const fipsMap = new Map(); 
-    let globalSum = 0;
+    let usTotal = 0, mxTotal = 0, caTotal = 0;
 
     rawData.forEach(d => {
         const val = +d.Confirmed || 0;
         
-        // Skip empty rows, "Unknown", or Country-level aggregate rows causing the duplication
-        if (!d.Province_State || d.Province_State === d.Country_Region || d.Province_State === "Unknown") return;
+        // Exclude aggregate and unassigned rows
+        if (!d.Province_State || d.Province_State === "Unknown" || d.Province_State === "Unassigned" || d.Province_State === d.Country_Region) return;
 
-        globalSum += val;
+        // Increment respective country totals
+        if (d.Country_Region === "US") {
+            usTotal += val;
+            fipsMap.set(d.ISO3166_2, val);
+        } else if (d.Country_Region === "Mexico") {
+            mxTotal += val;
+        } else if (d.Country_Region === "Canada") {
+            caTotal += val;
+        }
+
         nameMap.set(d.Province_State, (nameMap.get(d.Province_State) || 0) + val);
-        if (d.Country_Region === "US") fipsMap.set(d.ISO3166_2, val);
     });
 
-    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● System Synchronized</span>";
-    document.getElementById("data-stats").innerHTML = `Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span>`;
+    const globalSum = usTotal + mxTotal + caTotal;
+
+    document.getElementById("loading-msg").innerHTML = "<span style='color:#4caf50'>● Data Synchronized</span>";
+    document.getElementById("data-stats").innerHTML = `
+        Total Cases: <span class="highlight">${globalSum.toLocaleString()}</span><br>
+        <div style="font-size: 12px; margin-top: 4px; color: #aaa;">
+            US: ${usTotal.toLocaleString()} | MX: ${mxTotal.toLocaleString()} | CA: ${caTotal.toLocaleString()}
+        </div>
+    `;
 
     // 1. DYNAMIC EXTRACTION
     // Automatically grabs the first layer from your local files to bypass any naming errors
