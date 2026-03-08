@@ -90,74 +90,134 @@ def fetch_canada_data():
         print(f"Canada Playwright Error: {e}")
         return pd.DataFrame()
 
+import io
+import requests
+import pdfplumber
+import pandas as pd
+from bs4 import BeautifulSoup
+from datetime import datetime
+
 def fetch_mexico_data():
-    """Retrieves case data via reverse-chronological URL iteration."""
-    base_url = "https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/efe/historicos/2026/datos_abiertos_efe_{}.zip"
-    current_date = datetime.now()
+    """
+    Retrieves confirmed measles case data by dynamically scraping and parsing 
+    Table 1 from the official Mexican government epidemiological PDF report.
+    """
+    landing_url = "https://www.gob.mx/salud/documentos/informe-diario-del-brote-de-sarampion-en-mexico-2026"
     
-    for i in range(30):
-        test_url = base_url.format((current_date - timedelta(days=i)).strftime("%d%m%y"))
-        try:
-            if requests.head(test_url, timeout=10).status_code == 200:
-                r = requests.get(test_url)
-                with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-                    csv_name = [n for n in z.namelist() if n.endswith('.csv')][0]
-                    with z.open(csv_name) as f:
-                        df = pd.read_csv(f, encoding='ISO-8859-1')
-                
-                confirmed = df[df['DIAGNOSTICO'] == 1]
-                counts = confirmed.groupby('ENTIDAD_RES').size().reset_index(name='Confirmed')
-                
-                mexico_meta = {
-                    1: {'State': 'Aguascalientes', 'ISO': 'MX-AGU', 'Lat': 21.8853, 'Long': -102.2916},
-                    2: {'State': 'Baja California', 'ISO': 'MX-BCN', 'Lat': 30.8406, 'Long': -115.2838},
-                    3: {'State': 'Baja California Sur', 'ISO': 'MX-BCS', 'Lat': 26.0444, 'Long': -111.6661},
-                    4: {'State': 'Campeche', 'ISO': 'MX-CAM', 'Lat': 19.8301, 'Long': -90.5349},
-                    5: {'State': 'Coahuila', 'ISO': 'MX-COA', 'Lat': 27.0587, 'Long': -101.7068},
-                    6: {'State': 'Colima', 'ISO': 'MX-COL', 'Lat': 19.1223, 'Long': -104.0028},
-                    7: {'State': 'Chiapas', 'ISO': 'MX-CHP', 'Lat': 16.7569, 'Long': -93.1292},
-                    8: {'State': 'Chihuahua', 'ISO': 'MX-CHH', 'Lat': 28.6330, 'Long': -106.0691},
-                    9: {'State': 'Ciudad de Mexico', 'ISO': 'MX-CMX', 'Lat': 19.4326, 'Long': -99.1332},
-                    10: {'State': 'Durango', 'ISO': 'MX-DUR', 'Lat': 24.0277, 'Long': -104.6532},
-                    11: {'State': 'Guanajuato', 'ISO': 'MX-GUA', 'Lat': 21.0190, 'Long': -101.2574},
-                    12: {'State': 'Guerrero', 'ISO': 'MX-GRO', 'Lat': 17.5809, 'Long': -99.8237},
-                    13: {'State': 'Hidalgo', 'ISO': 'MX-HID', 'Lat': 20.0911, 'Long': -98.7624},
-                    14: {'State': 'Jalisco', 'ISO': 'MX-JAL', 'Lat': 20.6595, 'Long': -103.3490},
-                    15: {'State': 'Mexico', 'ISO': 'MX-MEX', 'Lat': 19.3202, 'Long': -99.5694},
-                    16: {'State': 'Michoacan', 'ISO': 'MX-MIC', 'Lat': 19.5665, 'Long': -101.7068},
-                    17: {'State': 'Morelos', 'ISO': 'MX-MOR', 'Lat': 18.6813, 'Long': -99.1013},
-                    18: {'State': 'Nayarit', 'ISO': 'MX-NAY', 'Lat': 21.7514, 'Long': -104.8455},
-                    19: {'State': 'Nuevo Leon', 'ISO': 'MX-NLE', 'Lat': 25.5922, 'Long': -99.9962},
-                    20: {'State': 'Oaxaca', 'ISO': 'MX-OAX', 'Lat': 17.0732, 'Long': -96.7266},
-                    21: {'State': 'Puebla', 'ISO': 'MX-PUE', 'Lat': 19.0414, 'Long': -98.2063},
-                    22: {'State': 'Queretaro', 'ISO': 'MX-QUE', 'Lat': 20.5888, 'Long': -100.3899},
-                    23: {'State': 'Quintana Roo', 'ISO': 'MX-ROO', 'Lat': 19.1817, 'Long': -88.4791},
-                    24: {'State': 'San Luis Potosi', 'ISO': 'MX-SLP', 'Lat': 22.1565, 'Long': -100.9855},
-                    25: {'State': 'Sinaloa', 'ISO': 'MX-SIN', 'Lat': 25.1721, 'Long': -107.4795},
-                    26: {'State': 'Sonora', 'ISO': 'MX-SON', 'Lat': 29.2972, 'Long': -110.3309},
-                    27: {'State': 'Tabasco', 'ISO': 'MX-TAB', 'Lat': 17.8409, 'Long': -92.6180},
-                    28: {'State': 'Tamaulipas', 'ISO': 'MX-TAM', 'Lat': 23.7369, 'Long': -99.1411},
-                    29: {'State': 'Tlaxcala', 'ISO': 'MX-TLA', 'Lat': 19.3182, 'Long': -98.2375},
-                    30: {'State': 'Veracruz', 'ISO': 'MX-VER', 'Lat': 19.1738, 'Long': -96.1342},
-                    31: {'State': 'Yucatan', 'ISO': 'MX-YUC', 'Lat': 20.7099, 'Long': -89.0943},
-                    32: {'State': 'Zacatecas', 'ISO': 'MX-ZAC', 'Lat': 22.7709, 'Long': -102.5832}
-                }
-                
-                counts['Province_State'] = counts['ENTIDAD_RES'].map(lambda x: mexico_meta.get(x, {}).get('State', 'Unknown'))
-                counts['ISO3166_2'] = counts['ENTIDAD_RES'].map(lambda x: mexico_meta.get(x, {}).get('ISO', ''))
-                counts['Lat'] = counts['ENTIDAD_RES'].map(lambda x: mexico_meta.get(x, {}).get('Lat', ''))
-                counts['Long_'] = counts['ENTIDAD_RES'].map(lambda x: mexico_meta.get(x, {}).get('Long', ''))
-                counts['Country_Region'] = 'Mexico'
-                counts['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                counts['Deaths'], counts['Recovered'] = 0, 0
-                counts['Active'] = counts['Confirmed']
-                counts['Combined_Key'] = counts['Province_State'] + ", Mexico"
-                
-                return counts[['Province_State', 'Country_Region', 'Last_Update', 'Lat', 'Long_', 
-                               'Confirmed', 'Deaths', 'Recovered', 'Active', 'Combined_Key', 'ISO3166_2']]
-        except:
-            continue
-    return pd.DataFrame()
+    # 1. Scrape the landing page for the current PDF link
+    try:
+        resp = requests.get(landing_url, timeout=10)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        
+        pdf_tag = soup.find('a', href=lambda href: href and href.endswith('.pdf'))
+        if not pdf_tag:
+            print("Error: No PDF link identified on the landing page.")
+            return pd.DataFrame()
+            
+        pdf_url = pdf_tag['href']
+        if pdf_url.startswith('/'):
+            pdf_url = "https://www.gob.mx" + pdf_url
+            
+    except requests.RequestException as e:
+        print(f"Network error during link extraction: {e}")
+        return pd.DataFrame()
+
+    # 2. Download and extract the PDF Table in-memory
+    try:
+        pdf_resp = requests.get(pdf_url, timeout=15)
+        pdf_resp.raise_for_status()
+        
+        raw_data = []
+        with pdfplumber.open(io.BytesIO(pdf_resp.content)) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text and "Situación actual de sarampión en México" in text:
+                    table = page.extract_table()
+                    if table:
+                        raw_data = table
+                        break
+                        
+        if not raw_data:
+            print("Error: Target epidemiological table not found in the parsed PDF.")
+            return pd.DataFrame()
+            
+    except Exception as e:
+        print(f"PDF stream parsing error: {e}")
+        return pd.DataFrame()
+
+    # 3. Clean and format the extracted Dataframe via positional indexing
+    df = pd.DataFrame(raw_data[2:])
+    
+    # Isolate State (index 0) and Total Confirmed 2025-2026 (last index)
+    df = df.rename(columns={0: 'Estado', df.columns[-1]: 'Total_Acumulado'})
+    df = df[['Estado', 'Total_Acumulado']].copy()
+    
+    # Drop empty rows and aggregate totals
+    df = df[df['Estado'].notna()]
+    df = df[~df['Estado'].astype(str).str.contains("Total|Estado", case=False, na=False)]
+    df['Estado'] = df['Estado'].astype(str).str.replace('\n', ' ').str.strip()
+    
+    # Coerce OCR numeric artifacts
+    df['Total_Acumulado'] = pd.to_numeric(
+        df['Total_Acumulado'].astype(str).str.replace(',', '').str.strip(), 
+        errors='coerce'
+    ).fillna(0)
+
+    # 4. Map spatial metadata matching the PDF's specific diacritics
+    mexico_meta = {
+        'Aguascalientes': {'ISO': 'MX-AGU', 'Lat': 21.8853, 'Long': -102.2916},
+        'Baja California': {'ISO': 'MX-BCN', 'Lat': 30.8406, 'Long': -115.2838},
+        'Baja California Sur': {'ISO': 'MX-BCS', 'Lat': 26.0444, 'Long': -111.6661},
+        'Campeche': {'ISO': 'MX-CAM', 'Lat': 19.8301, 'Long': -90.5349},
+        'Coahuila': {'ISO': 'MX-COA', 'Lat': 27.0587, 'Long': -101.7068},
+        'Colima': {'ISO': 'MX-COL', 'Lat': 19.1223, 'Long': -104.0028},
+        'Chiapas': {'ISO': 'MX-CHP', 'Lat': 16.7569, 'Long': -93.1292},
+        'Chihuahua': {'ISO': 'MX-CHH', 'Lat': 28.6330, 'Long': -106.0691},
+        'Ciudad de México': {'ISO': 'MX-CMX', 'Lat': 19.4326, 'Long': -99.1332},
+        'Durango': {'ISO': 'MX-DUR', 'Lat': 24.0277, 'Long': -104.6532},
+        'Guanajuato': {'ISO': 'MX-GUA', 'Lat': 21.0190, 'Long': -101.2574},
+        'Guerrero': {'ISO': 'MX-GRO', 'Lat': 17.5809, 'Long': -99.8237},
+        'Hidalgo': {'ISO': 'MX-HID', 'Lat': 20.0911, 'Long': -98.7624},
+        'Jalisco': {'ISO': 'MX-JAL', 'Lat': 20.6595, 'Long': -103.3490},
+        'México': {'ISO': 'MX-MEX', 'Lat': 19.3202, 'Long': -99.5694},
+        'Michoacán': {'ISO': 'MX-MIC', 'Lat': 19.5665, 'Long': -101.7068},
+        'Morelos': {'ISO': 'MX-MOR', 'Lat': 18.6813, 'Long': -99.1013},
+        'Nayarit': {'ISO': 'MX-NAY', 'Lat': 21.7514, 'Long': -104.8455},
+        'Nuevo León': {'ISO': 'MX-NLE', 'Lat': 25.5922, 'Long': -99.9962},
+        'Oaxaca': {'ISO': 'MX-OAX', 'Lat': 17.0732, 'Long': -96.7266},
+        'Puebla': {'ISO': 'MX-PUE', 'Lat': 19.0414, 'Long': -98.2063},
+        'Querétaro': {'ISO': 'MX-QUE', 'Lat': 20.5888, 'Long': -100.3899},
+        'Quintana Roo': {'ISO': 'MX-ROO', 'Lat': 19.1817, 'Long': -88.4791},
+        'San Luis Potosí': {'ISO': 'MX-SLP', 'Lat': 22.1565, 'Long': -100.9855},
+        'Sinaloa': {'ISO': 'MX-SIN', 'Lat': 25.1721, 'Long': -107.4795},
+        'Sonora': {'ISO': 'MX-SON', 'Lat': 29.2972, 'Long': -110.3309},
+        'Tabasco': {'ISO': 'MX-TAB', 'Lat': 17.8409, 'Long': -92.6180},
+        'Tamaulipas': {'ISO': 'MX-TAM', 'Lat': 23.7369, 'Long': -99.1411},
+        'Tlaxcala': {'ISO': 'MX-TLA', 'Lat': 19.3182, 'Long': -98.2375},
+        'Veracruz': {'ISO': 'MX-VER', 'Lat': 19.1738, 'Long': -96.1342},
+        'Yucatán': {'ISO': 'MX-YUC', 'Lat': 20.7099, 'Long': -89.0943},
+        'Zacatecas': {'ISO': 'MX-ZAC', 'Lat': 22.7709, 'Long': -102.5832}
+    }
+    
+    out_df = pd.DataFrame()
+    out_df['Province_State'] = df['Estado']
+    out_df['Country_Region'] = 'Mexico'
+    out_df['Last_Update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    out_df['Lat'] = df['Estado'].map(lambda x: mexico_meta.get(x, {}).get('Lat', 0.0))
+    out_df['Long_'] = df['Estado'].map(lambda x: mexico_meta.get(x, {}).get('Long', 0.0))
+    out_df['Confirmed'] = df['Total_Acumulado']
+    out_df['Deaths'] = 0
+    out_df['Recovered'] = 0
+    out_df['Active'] = df['Total_Acumulado']
+    # Normalize strings for the Combined_Key to match standard reporting
+    out_df['Combined_Key'] = df['Estado'].str.replace('á', 'a').str.replace('é', 'e').str.replace('í', 'i').str.replace('ó', 'o') + ", Mexico"
+    out_df['ISO3166_2'] = df['Estado'].map(lambda x: mexico_meta.get(x, {}).get('ISO', ''))
+
+    return out_df
+
+# To verify output sum:
+# print(fetch_mexico_data()['Confirmed'].sum())
 
 def main():
     print("--- Starting North American Master Merge ---")
