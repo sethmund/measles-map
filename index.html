@@ -234,7 +234,18 @@ Promise.all([
             showTooltip(e, regionName, nameMap.get(regionName));
         })
         .on("mouseout", () => tooltip.style("opacity", 0))
-        .on("click", (event) => event.stopPropagation()); // Added stopPropagation to prevent zoom-out
+        .on("click", (event, d) => {
+            event.stopPropagation();
+            const [[x0, y0], [x1, y1]] = path.bounds(d);
+            svg.transition().duration(750).call(
+                zoom.transform,
+                d3.zoomIdentity.translate(width/2, height/2)
+                    .scale(Math.min(8, 0.9 / Math.max((x1-x0)/width, (y1-y0)/height)))
+                    .translate(-(x0+x1)/2, -(y0+y1)/2)
+            );
+            // Clear US counties if transitioning from a US state
+            g.selectAll(".county-layer").remove();
+        });
 
     // 3. DRAW US STATES
     g.append("g").selectAll("path")
