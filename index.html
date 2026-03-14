@@ -221,6 +221,17 @@ Promise.all([
     const usStates = topojson.feature(us, us.objects.states).features;
     const usCounties = topojson.feature(us, us.objects.counties).features;
 
+    // View tracking
+    let activeState = null;
+    let activeCounty = null;
+
+    function resetMap() {
+        activeState = null;
+        activeCounty = null;
+        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+        g.selectAll(".county-layer").remove();
+    }
+
     // 2. DRAW INTERNATIONAL (Canada & Mexico)
     g.append("g").selectAll("path")
         .data([...caFeatures, ...mxFeatures])
@@ -236,6 +247,11 @@ Promise.all([
         .on("mouseout", () => tooltip.style("opacity", 0))
         .on("click", (event, d) => {
             event.stopPropagation();
+            if (activeState === d) return resetMap();
+
+            activeState = d;
+            activeCounty = null;
+
             const [[x0, y0], [x1, y1]] = path.bounds(d);
             svg.transition().duration(750).call(
                 zoom.transform,
@@ -256,6 +272,11 @@ Promise.all([
         .on("mouseout", () => tooltip.style("opacity", 0))
         .on("click", (event, d) => {
             event.stopPropagation();
+            if (activeState === d) return resetMap();
+
+            activeState = d;
+            activeCounty = null;
+
             const [[x0, y0], [x1, y1]] = path.bounds(d);
             svg.transition().duration(750).call(
                 zoom.transform,
@@ -266,7 +287,7 @@ Promise.all([
             renderCounties(d, usCounties);
         });
 
-// 4. COUNTY DRILL-DOWN LOGIC
+    // 4. COUNTY DRILL-DOWN LOGIC
     function renderCounties(stateFeature, allCounties) {
         g.selectAll(".county-layer").remove();
         
@@ -281,13 +302,18 @@ Promise.all([
                 return color(countVal); 
             })
             .on("mouseover", (e, d) => showTooltip(e, d.properties.name, fipsMap.get(d.id)))
-            .on("mouseout", () => tooltip.style("opacity", 0));
+            .on("mouseout", () => tooltip.style("opacity", 0))
+            .on("click", (event, d) => {
+                event.stopPropagation();
+                if (activeCounty === d) {
+                    resetMap();
+                } else {
+                    activeCounty = d;
+                }
+            });
     }
 
-    svg.call(zoom).on("click", () => {
-        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-        g.selectAll(".county-layer").remove();
-    });
+    svg.call(zoom).on("click", resetMap);
 
 }).catch(err => {
     document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Load Error: ${err.message}</span>`;
