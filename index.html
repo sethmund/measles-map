@@ -97,7 +97,7 @@
     <div class="stat-line" id="data-stats"></div>
     <div style="margin-top:15px; font-size:11px; color:#555; border-top:1px solid #333; padding-top:10px;">
         Scope: Lab-Confirmed Cases<br>
-        Updated: 2026-03-07
+        Updated: <span id="last-updated">Scanning...</span>
     </div>
 </div>
 
@@ -181,10 +181,18 @@ Promise.all([
     const nameMap = new Map(); 
     const fipsMap = new Map(); 
     let usTotal = 0, mxTotal = 0, caTotal = 0;
+    let latestDate = 0;
 
     rawData.forEach(d => {
         const val = +d.Confirmed || 0;
         
+        // Dynamic date extraction handling standard column configurations
+        const rowDateStr = d.Last_Update || d.Date || d.Report_Date || d.date;
+        if (rowDateStr) {
+            const rowDate = new Date(rowDateStr).getTime();
+            if (rowDate > latestDate) latestDate = rowDate;
+        }
+
         // Exclude aggregate and unassigned rows
         if (!d.Province_State || d.Province_State === "Unknown" || d.Province_State === "Unassigned" || d.Province_State === d.Country_Region) return;
 
@@ -210,6 +218,12 @@ Promise.all([
             US: ${usTotal.toLocaleString()} | MX: ${mxTotal.toLocaleString()} | CA: ${caTotal.toLocaleString()}
         </div>
     `;
+
+    if (latestDate > 0) {
+        document.getElementById("last-updated").innerText = new Date(latestDate).toISOString().split('T')[0];
+    } else {
+        document.getElementById("last-updated").innerText = "Unknown";
+    }
 
     // 1. DYNAMIC EXTRACTION
     // Automatically grabs the first layer from your local files to bypass any naming errors
