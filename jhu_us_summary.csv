@@ -1,103 +1,103 @@
 Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key,ISO3166_2
-Utah,US,2026-03-14 02:02:26,0,0,6,0,0,0,"Bear River, Utah",00000
-Virginia,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Central Region, Virginia",00000
-Utah,US,2026-03-14 02:02:26,0,0,25,0,0,0,"Central, Utah",00000
-Virginia,US,2026-03-14 02:02:26,0,0,9,0,0,0,"Northern Region, Virginia",00000
-Utah,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Southeast Health District, Utah",00000
-Utah,US,2026-03-14 02:02:26,0,0,94,0,0,0,"Southwest Health District, Utah",00000
-Utah,US,2026-03-14 02:02:26,0,0,5,0,0,0,"Tricounty, Utah",00000
-South Carolina,US,2026-03-14 02:02:26,0,0,697,0,0,0,"Upstate, South Carolina",00000
-Florida,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Alachua, Florida",12001
-Florida,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Broward, Florida",12011
-Florida,US,2026-03-14 02:02:26,0,0,98,0,0,0,"Collier, Florida",12021
-Florida,US,2026-03-14 02:02:26,0,0,6,0,0,0,"Duval, Florida",12031
-Florida,US,2026-03-14 02:02:26,0,0,5,0,0,0,"Escambia, Florida",12033
-Florida,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Hillsborough, Florida",12057
-Florida,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Lee, Florida",12071
-Florida,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Manatee, Florida",12081
-Florida,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Miami-Dade, Florida",12086
-Florida,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Pasco, Florida",12101
-Florida,US,2026-03-14 02:02:26,0,0,6,0,0,0,"Pinellas, Florida",12103
-Florida,US,2026-03-14 02:02:26,0,0,3,0,0,0,"St. Johns, Florida",12109
-Georgia,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Coastal Health District, Georgia",00013
-Georgia,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Bryan, Georgia",13029
-Idaho,US,2026-03-14 02:02:26,0,0,6,0,0,0,"Canyon, Idaho",16027
-Idaho,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Madison, Idaho",16065
-Illinois,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Metro East , Illinois",00017
-Illinois,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Unknown County, Illinois",00017
-Kentucky,US,2026-03-14 02:02:26,0,0,4,0,0,0,"Jessamine, Kentucky",21113
-Maine,US,2026-03-14 02:02:26,0,0,5,0,0,0,"Penobscot, Maine",23019
-Massachusetts,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Unknown County, Massachusetts",00025
-Massachusetts,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Greater Boston, Massachusetts",25025
-Minnesota,US,2026-03-14 02:02:26,0,0,14,0,0,0,"Unknown County, Minnesota",00027
-Missouri,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Jackson, Missouri",29095
-Nebraska,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Unknown County, Nebraska",00031
-Nebraska,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Lancaster, Nebraska",31109
-New Mexico,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Dona Ana, New Mexico",35013
-New Mexico,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Hidalgo, New Mexico",35023
-New Mexico,US,2026-03-14 02:02:26,0,0,5,0,0,0,"Luna, New Mexico",35029
-New York,US,2026-03-14 02:02:26,0,0,1,0,0,0,"New York City, New York",36061
-New York,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Rockland, New York",36087
-North Carolina,US,2026-03-14 02:02:26,0,0,7,0,0,0,"Buncombe, North Carolina",37021
-North Carolina,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Burke, North Carolina",37023
-North Carolina,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Cabarrus, North Carolina",37025
-North Carolina,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Johnston, North Carolina",37101
-North Carolina,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Lincoln, North Carolina",37109
-North Carolina,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Mecklenburg, North Carolina",37119
-North Carolina,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Nash, North Carolina",37127
-North Carolina,US,2026-03-14 02:02:26,0,0,4,0,0,0,"Polk, North Carolina",37149
-North Carolina,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Union, North Carolina",37179
-North Dakota,US,2026-03-14 02:02:26,0,0,21,0,0,0,"Pembina, North Dakota",38067
-North Dakota,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Traill, North Dakota",38097
-North Dakota,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Walsh, North Dakota",38099
-North Dakota,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Williams, North Dakota",38105
-Ohio,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Cuyahoga, Ohio",39035
-Ohio,US,2026-03-14 02:02:26,0,0,6,0,0,0,"Franklin, Ohio",39049
-Oklahoma,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Unknown County, Oklahoma",40109
-Arizona,US,2026-03-14 02:02:26,0,0,4,0,0,0,"Maricopa, Arizona",04013
-Arizona,US,2026-03-14 02:02:26,0,0,47,0,0,0,"Mohave, Arizona",04015
-Arizona,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Pima, Arizona",04019
-Arizona,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Pinal, Arizona",04021
-Oregon,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Unknown County, Oregon",00041
-Oregon,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Clackamas, Oregon",41005
-Oregon,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Linn, Oregon",41043
-Pennsylvania,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Chester, Pennsylvania",42029
-Pennsylvania,US,2026-03-14 02:02:26,0,0,8,0,0,0,"Lancaster, Pennsylvania",42071
-Pennsylvania,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Montgomery, Pennsylvania",42091
-South Dakota,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Brookings, South Dakota",46011
-South Dakota,US,2026-03-14 02:02:26,0,0,6,0,0,0,"Grant, South Dakota",46051
-Texas,US,2026-03-14 02:02:26,0,0,5,0,0,0,"Bandera, Texas",48019
-Texas,US,2026-03-14 02:02:26,0,0,42,0,0,0,"El Paso, Texas",48141
-Texas,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Frio, Texas",48163
-Texas,US,2026-03-14 02:02:26,0,0,99,0,0,0,"Hudspeth, Texas",48229
-Texas,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Kendall, Texas",48259
-Texas,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Lubbock, Texas",48303
-Texas,US,2026-03-14 02:02:26,0,0,12,0,0,0,"Rockwall, Texas",48397
-Utah,US,2026-03-14 02:02:26,0,0,7,0,0,0,"Davis, Utah",49011
-Utah,US,2026-03-14 02:02:26,0,0,43,0,0,0,"Salt Lake, Utah",49035
-Utah,US,2026-03-14 02:02:26,0,0,3,0,0,0,"San Juan, Utah",49037
-Utah,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Summit, Utah",49043
-Utah,US,2026-03-14 02:02:26,0,0,11,0,0,0,"Tooele, Utah",49045
-Utah,US,2026-03-14 02:02:26,0,0,51,0,0,0,"Utah, Utah",49049
-Utah,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Weber-Morgan, Utah",49057
-Vermont,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Washington, Vermont",50023
-Washington,US,2026-03-14 02:02:26,0,0,8,0,0,0,"Clark, Washington",53011
-Washington,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Kittitas, Washington",53037
-Washington,US,2026-03-14 02:02:26,0,0,14,0,0,0,"Snohomish, Washington",53061
-Washington,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Stevens, Washington",53065
-Wisconsin,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Dane, Wisconsin",55025
-Wisconsin,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Waukesha, Wisconsin",55133
-California,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Unknown County, California",00006
-California,US,2026-03-14 02:02:26,0,0,4,0,0,0,"Los Angeles, California",06037
-California,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Napa, California",06055
-California,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Orange, California",06059
-California,US,2026-03-14 02:02:26,0,0,4,0,0,0,"Placer, California",06061
-California,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Riverside, California",06065
-California,US,2026-03-14 02:02:26,0,0,2,0,0,0,"Sacramento, California",06067
-California,US,2026-03-14 02:02:26,0,0,2,0,0,0,"San Mateo, California",06081
-California,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Santa Clara, California",06085
-California,US,2026-03-14 02:02:26,0,0,9,0,0,0,"Shasta, California",06089
-Colorado,US,2026-03-14 02:02:26,0,0,5,0,0,0,"Adams, Colorado",08001
-Colorado,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Arapahoe, Colorado",08005
-Colorado,US,2026-03-14 02:02:26,0,0,3,0,0,0,"Broomfield, Colorado",08014
-Colorado,US,2026-03-14 02:02:26,0,0,1,0,0,0,"Weld, Colorado",08123
+Utah,US,2026-03-15 02:27:48,0,0,6,0,0,0,"Bear River, Utah",00000
+Virginia,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Central Region, Virginia",00000
+Utah,US,2026-03-15 02:27:48,0,0,25,0,0,0,"Central, Utah",00000
+Virginia,US,2026-03-15 02:27:48,0,0,9,0,0,0,"Northern Region, Virginia",00000
+Utah,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Southeast Health District, Utah",00000
+Utah,US,2026-03-15 02:27:48,0,0,94,0,0,0,"Southwest Health District, Utah",00000
+Utah,US,2026-03-15 02:27:48,0,0,5,0,0,0,"Tricounty, Utah",00000
+South Carolina,US,2026-03-15 02:27:48,0,0,697,0,0,0,"Upstate, South Carolina",00000
+Florida,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Alachua, Florida",12001
+Florida,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Broward, Florida",12011
+Florida,US,2026-03-15 02:27:48,0,0,98,0,0,0,"Collier, Florida",12021
+Florida,US,2026-03-15 02:27:48,0,0,6,0,0,0,"Duval, Florida",12031
+Florida,US,2026-03-15 02:27:48,0,0,5,0,0,0,"Escambia, Florida",12033
+Florida,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Hillsborough, Florida",12057
+Florida,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Lee, Florida",12071
+Florida,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Manatee, Florida",12081
+Florida,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Miami-Dade, Florida",12086
+Florida,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Pasco, Florida",12101
+Florida,US,2026-03-15 02:27:48,0,0,6,0,0,0,"Pinellas, Florida",12103
+Florida,US,2026-03-15 02:27:48,0,0,3,0,0,0,"St. Johns, Florida",12109
+Georgia,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Coastal Health District, Georgia",00013
+Georgia,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Bryan, Georgia",13029
+Idaho,US,2026-03-15 02:27:48,0,0,6,0,0,0,"Canyon, Idaho",16027
+Idaho,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Madison, Idaho",16065
+Illinois,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Metro East , Illinois",00017
+Illinois,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Unknown County, Illinois",00017
+Kentucky,US,2026-03-15 02:27:48,0,0,4,0,0,0,"Jessamine, Kentucky",21113
+Maine,US,2026-03-15 02:27:48,0,0,5,0,0,0,"Penobscot, Maine",23019
+Massachusetts,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Unknown County, Massachusetts",00025
+Massachusetts,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Greater Boston, Massachusetts",25025
+Minnesota,US,2026-03-15 02:27:48,0,0,14,0,0,0,"Unknown County, Minnesota",00027
+Missouri,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Jackson, Missouri",29095
+Nebraska,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Unknown County, Nebraska",00031
+Nebraska,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Lancaster, Nebraska",31109
+New Mexico,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Dona Ana, New Mexico",35013
+New Mexico,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Hidalgo, New Mexico",35023
+New Mexico,US,2026-03-15 02:27:48,0,0,5,0,0,0,"Luna, New Mexico",35029
+New York,US,2026-03-15 02:27:48,0,0,1,0,0,0,"New York City, New York",36061
+New York,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Rockland, New York",36087
+North Carolina,US,2026-03-15 02:27:48,0,0,7,0,0,0,"Buncombe, North Carolina",37021
+North Carolina,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Burke, North Carolina",37023
+North Carolina,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Cabarrus, North Carolina",37025
+North Carolina,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Johnston, North Carolina",37101
+North Carolina,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Lincoln, North Carolina",37109
+North Carolina,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Mecklenburg, North Carolina",37119
+North Carolina,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Nash, North Carolina",37127
+North Carolina,US,2026-03-15 02:27:48,0,0,4,0,0,0,"Polk, North Carolina",37149
+North Carolina,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Union, North Carolina",37179
+North Dakota,US,2026-03-15 02:27:48,0,0,21,0,0,0,"Pembina, North Dakota",38067
+North Dakota,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Traill, North Dakota",38097
+North Dakota,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Walsh, North Dakota",38099
+North Dakota,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Williams, North Dakota",38105
+Ohio,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Cuyahoga, Ohio",39035
+Ohio,US,2026-03-15 02:27:48,0,0,6,0,0,0,"Franklin, Ohio",39049
+Oklahoma,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Unknown County, Oklahoma",40109
+Arizona,US,2026-03-15 02:27:48,0,0,4,0,0,0,"Maricopa, Arizona",04013
+Arizona,US,2026-03-15 02:27:48,0,0,47,0,0,0,"Mohave, Arizona",04015
+Arizona,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Pima, Arizona",04019
+Arizona,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Pinal, Arizona",04021
+Oregon,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Unknown County, Oregon",00041
+Oregon,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Clackamas, Oregon",41005
+Oregon,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Linn, Oregon",41043
+Pennsylvania,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Chester, Pennsylvania",42029
+Pennsylvania,US,2026-03-15 02:27:48,0,0,8,0,0,0,"Lancaster, Pennsylvania",42071
+Pennsylvania,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Montgomery, Pennsylvania",42091
+South Dakota,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Brookings, South Dakota",46011
+South Dakota,US,2026-03-15 02:27:48,0,0,6,0,0,0,"Grant, South Dakota",46051
+Texas,US,2026-03-15 02:27:48,0,0,5,0,0,0,"Bandera, Texas",48019
+Texas,US,2026-03-15 02:27:48,0,0,42,0,0,0,"El Paso, Texas",48141
+Texas,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Frio, Texas",48163
+Texas,US,2026-03-15 02:27:48,0,0,99,0,0,0,"Hudspeth, Texas",48229
+Texas,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Kendall, Texas",48259
+Texas,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Lubbock, Texas",48303
+Texas,US,2026-03-15 02:27:48,0,0,12,0,0,0,"Rockwall, Texas",48397
+Utah,US,2026-03-15 02:27:48,0,0,7,0,0,0,"Davis, Utah",49011
+Utah,US,2026-03-15 02:27:48,0,0,43,0,0,0,"Salt Lake, Utah",49035
+Utah,US,2026-03-15 02:27:48,0,0,3,0,0,0,"San Juan, Utah",49037
+Utah,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Summit, Utah",49043
+Utah,US,2026-03-15 02:27:48,0,0,11,0,0,0,"Tooele, Utah",49045
+Utah,US,2026-03-15 02:27:48,0,0,51,0,0,0,"Utah, Utah",49049
+Utah,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Weber-Morgan, Utah",49057
+Vermont,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Washington, Vermont",50023
+Washington,US,2026-03-15 02:27:48,0,0,8,0,0,0,"Clark, Washington",53011
+Washington,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Kittitas, Washington",53037
+Washington,US,2026-03-15 02:27:48,0,0,14,0,0,0,"Snohomish, Washington",53061
+Washington,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Stevens, Washington",53065
+Wisconsin,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Dane, Wisconsin",55025
+Wisconsin,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Waukesha, Wisconsin",55133
+California,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Unknown County, California",00006
+California,US,2026-03-15 02:27:48,0,0,4,0,0,0,"Los Angeles, California",06037
+California,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Napa, California",06055
+California,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Orange, California",06059
+California,US,2026-03-15 02:27:48,0,0,4,0,0,0,"Placer, California",06061
+California,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Riverside, California",06065
+California,US,2026-03-15 02:27:48,0,0,2,0,0,0,"Sacramento, California",06067
+California,US,2026-03-15 02:27:48,0,0,2,0,0,0,"San Mateo, California",06081
+California,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Santa Clara, California",06085
+California,US,2026-03-15 02:27:48,0,0,9,0,0,0,"Shasta, California",06089
+Colorado,US,2026-03-15 02:27:48,0,0,5,0,0,0,"Adams, Colorado",08001
+Colorado,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Arapahoe, Colorado",08005
+Colorado,US,2026-03-15 02:27:48,0,0,3,0,0,0,"Broomfield, Colorado",08014
+Colorado,US,2026-03-15 02:27:48,0,0,1,0,0,0,"Weld, Colorado",08123
