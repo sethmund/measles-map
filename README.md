@@ -23,15 +23,6 @@ Data is sourced and aggregated dynamically from international health authorities
 - **Canada:** [Public Health Agency of Canada (PHAC) Health Infobase](https://health-infobase.canada.ca/measles-rubella/).
 - **Mexico:** Secretaría de Salud / Dirección General de Epidemiología (DGE) Daily Epidemiological Reports (extracted dynamically from official PDFs).
 
-## 🦠 Companion Model: Community Transmission ABM
-The map shows where cases are; [`abm/`](abm/) asks how an introduction into a single community plays out. It is a standalone C++17 agent-based model — no dependencies — simulating measles through households, daycares, schools, workplaces, urgent care and hospital waiting rooms, inpatient wards, long-term care facilities and community venues, with immunity assigned by birth cohort and a configurable public health response.
-
-```bash
-cd abm && make && ./measles_abm
-```
-
-See [`abm/README.md`](abm/README.md) for the model description, calibration (R0 ≈ 15), scenarios and outputs.
-
 ## 🛠️ System Architecture & Tech Stack
 
 **Frontend (Visualization):**
