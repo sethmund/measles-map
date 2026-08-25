@@ -1,0 +1,5 @@
+build/
+results/
+measles_abm
+measles_tests
+*.o
