@@ -329,6 +329,17 @@ Promise.all([
 
     svg.call(zoom).on("click", resetMap);
 
+    // 5. DEEP LINKS: ?region=Pennsylvania (or a province/Mexican state) zooms there on load
+    const deepRegion = new URLSearchParams(location.search).get("region");
+    if (deepRegion) {
+        const target = deepRegion.trim().toLowerCase();
+        const match = g.selectAll(".state:not(.county)").filter(d => {
+            const name = d.properties.name || d.properties.state_name || d.properties.NOM_ENT || "";
+            return name.toLowerCase() === target;
+        });
+        if (!match.empty()) match.dispatch("click");
+    }
+
 }).catch(err => {
     document.getElementById("loading-msg").innerHTML = `<span style="color:#ff4444">❌ Load Error: ${err.message}</span>`;
 });
