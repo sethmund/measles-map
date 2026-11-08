@@ -21,7 +21,7 @@ This project visualizes the current North American measles outbreak using a mult
 Data is sourced and aggregated dynamically from international health authorities and academic repositories:
 - **United States:** [Johns Hopkins University (JHU) CSSE Measles Data Repository](https://github.com/CSSEGISandData/measles_data).
 - **Canada:** [Public Health Agency of Canada (PHAC) Health Infobase](https://health-infobase.canada.ca/measles-rubella/).
-- **Mexico:** Secretaría de Salud / Dirección General de Epidemiología (DGE) Daily Epidemiological Reports (extracted dynamically from official PDFs).
+- **Mexico:** Secretaría de Salud / Dirección General de Epidemiología (DGE) [open data for febrile rash illnesses (EFE)](https://www.gob.mx/salud/documentos/datos-abiertos-bases-historicas-de-enfermedades-febriles-exantematicas?idiom=es). The weekly case-level ZIP is aggregated to laboratory/clinically confirmed measles (`DIAGNOSTICO = 1`) by state of residence, including deaths.
 
 ## 🛠️ System Architecture & Tech Stack
 
@@ -32,5 +32,5 @@ Data is sourced and aggregated dynamically from international health authorities
 
 **Backend (ETL Pipeline):**
 - **Python 3:** Data extraction, transformation, and loading.
-- **Libraries:** `pandas` (data manipulation), `pdfplumber` (positional extraction of Mexican clinical tables), `BeautifulSoup` (dynamic URL resolution for daily reports), `requests`.
+- **Libraries:** `pandas` (data manipulation), `pdfplumber` (resolving weekly ZIP links from the yearly SSA index PDF), `BeautifulSoup` (dynamic URL resolution), `requests`.
 - **GitHub Actions:** CI/CD cron job for daily data synchronization and automated repository commits.
